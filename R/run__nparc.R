@@ -17,7 +17,7 @@ BPPARAM <- BiocParallel::MulticoreParam(workers = 2, progressbar = TRUE)
 # BPPARAM <- BiocParallel::MulticoreParam(workers = 20, progressbar = TRUE)
 
 # the output folder
-output_folder <- file.path("nparc", "output", "standard")
+output_folder <- file.path(here(), "nparc", "output", "standard")
 if (!dir.exists(output_folder)) dir.create(output_folder, recursive = TRUE)
 
 # set path for meta data
@@ -25,7 +25,7 @@ sample_meta_file <- here("meta/sample_meta.txt")
 sample_meta_raw <- read_tsv(file = sample_meta_file)
 
 # read in proteoform ratios
-proteoforms_ratios <- readRDS(here("proteoform_detection/output/standard/small_example_proteoforms.RDS"))
+proteoforms_ratios <- readRDS(here("proteoform_detection/output/standard/proteoforms_narrow_range_focused.RDS"))
 unique_sample_ids <- unique(pData(proteoforms_ratios)$sample_name_machine)
 
 # loop over samples and compute per sample sigmoid fit statistics using NPARC 
@@ -51,6 +51,7 @@ nparc_res_df <- bind_rows(nparc_res_list, .id = "sample_name")
 # filter out high noise single-sample fits to get appropriate null models
 alt_hq_nparc_df <- nparc_res_df %>% 
     filter(conv, !grepl("_BR2", sample_name, resid_sd < 0.1))
+saveRDS(alt_hq_nparc_df, file = file.path(output_folder, "nparc_res_hq_df.RDS"))
 
 # remove biological replicates from analysis 
 # (they are only used to assess alternative model replicability)
@@ -94,3 +95,21 @@ nparc_fstat_df <- left_join(
     mutate(F_statistic = ((rss - rssAlternative)/rssAlternative) * (d2/d1)) 
 
 saveRDS(nparc_fstat_df, file = file.path(output_folder, "nparc_fstat_df.RDS"))
+
+# volcano plot
+ggplot(nparc_fstat_df, aes(rss-rssAlternative, F_statistic)) +
+    geom_point(alpha = 0.25, color = "gray") +
+    geom_point(color = "black", alpha = 0.5,
+               data = filter(nparc_fstat_df, 
+                             F_statistic >= quantile(nparc_fstat_df$F_statistic, 0.9))) +
+    # geom_label_repel(
+    #     label = "NEK2",  
+    #     nudge_x = 1,
+    #     direction = "x",
+    #     segment.size = 0.25,
+    #     color = "black", 
+    #     data = filter(nparc_fstat_df,id == "NEK2_0")) +
+    scale_x_log10() +
+    labs(x = bquote('RSS'^0~' - RSS'^1~''),
+         y = expression(''*italic(F)*'-statistic')) +
+    coord_cartesian(xlim = c(0.05, 17.5)) 
