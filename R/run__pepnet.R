@@ -9,8 +9,8 @@ library(biobroom)
 library(cowplot)
 library(ggrepel)
 library(ggpmisc)
-library(ggthemes)
 library(RColorBrewer)
+library(here)
 
 # workaround to install leiden on tamarindo
 # library(reticulate)
@@ -22,16 +22,8 @@ library(RColorBrewer)
 
 library(leiden)
 
-
 # workaround for vsn incompatibility with other packages
 # BiocManager::install("vsn")
-
-
-# set source directory to not confuse the tamarindo file system
-# setwd("/Z/matthias/deepmeltome/R")
-
-
-theme_set(theme_tufte())
 
 sourceDir <- function(path, ...) {
   for (nm in list.files(path, pattern = "\\.[RrSsQq]$")) {
@@ -50,14 +42,14 @@ palette <- c("#FF5376", "#72AFD9", "#E3D26F", "#A288E3", "#1B5299", "#68D8D6", "
 membership_colors <- get_color_vector(colors = palette, vec = seq_len(8))
 
 # the output folder
-output_folder <- file.path("proteoform_detection", "output", "standard")
+output_folder <- here("proteoform_detection", "output", "standard")
 if (!dir.exists(output_folder)) dir.create(output_folder, recursive = TRUE)
 
 
 ############### IMPORT ###############
 
 # import PSMs
-psms <- import_psms_from_nf(file = file.path("data", "13320", "target_psmtable.txt"),
+psms <- import_psms_from_nf(file = here("data", "target_psmtable.txt"),
                             id_col = "Gene Name",
                             protein_id_col = "Protein",
                             peptide_col = "Peptide",
@@ -66,7 +58,7 @@ psms <- import_psms_from_nf(file = file.path("data", "13320", "target_psmtable.t
 # sum to peptides
 peptides_raw <- psms_to_peptides(psms = psms,
                                  summarise_fun = sum,
-                                 sample_meta_file = file.path("meta", "meltome_sample_meta.txt"),
+                                 sample_meta_file = here("meta", "meltome_sample_meta.txt"),
                                  sample_id_col = "sample_id")
 
 saveRDS(object = peptides_raw, file = file.path(output_folder, "peptides_raw.RDS"))
@@ -77,7 +69,8 @@ saveRDS(object = peptides_raw, file = file.path(output_folder, "peptides_raw.RDS
 peptides_vsn_norm <- vsn_normalize_by_temperature(e_set = peptides_raw)
 
 # ratios to lowest temperature
-peptides <- build_ratios_to_lowest_temperature(e_set = peptides_vsn_norm, sample_col = "sample_name")
+peptides <- build_ratios_to_lowest_temperature(e_set = peptides_vsn_norm, 
+                                               sample_col = "sample_name")
 
 # extract first protein IDs
 fData(peptides) <- peptides %>%
@@ -156,7 +149,8 @@ proteoforms_intensities_filtered <- proteoforms_intensities %>%
 proteoforms_vsn_norm <- vsn_normalize_by_temperature(e_set = proteoforms_intensities_filtered)
 
 # ratios to lowest temperature
-proteoforms <- build_ratios_to_lowest_temperature(e_set = proteoforms_vsn_norm, sample_col = "sample_name")
+proteoforms <- build_ratios_to_lowest_temperature(e_set = proteoforms_vsn_norm, 
+                                                  sample_col = "sample_name")
 
 saveRDS(object = proteoforms, file = file.path(output_folder, "proteoforms.RDS"))
 
