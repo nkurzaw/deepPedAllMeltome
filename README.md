@@ -22,3 +22,4 @@ Meta data is stored in the `meta` directory.
 
 - `sample_meta.txt`: the sample (cell line) information
 - `channel_meta.txt`: the TMT channels (and relating temperatures)
+- `meltome_sample_meta.txt`: the meltome sample information (e.g. which channels correspond to which temperatures)
