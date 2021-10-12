@@ -87,6 +87,8 @@ all_limma_out_df <- bind_rows(lapply(rownames(auc_mat_norm), function(prot){
     arrange(P.Value) %>% 
     mutate(p_adj = p.adjust(P.Value, "BH"))
 
+saveRDS(all_limma_out_df, file.path(output_folder, "limma_out_df.RDS"))
+
 # print out significant hits
 print(all_limma_out_df %>% filter(p_adj < 0.1), n = 30)
 
