@@ -50,7 +50,7 @@ nparc_res_df <- bind_rows(nparc_res_list, .id = "sample_name")
 
 # filter out high noise single-sample fits to get appropriate null models
 alt_hq_nparc_df <- nparc_res_df %>% 
-    filter(conv, !grepl("_BR2", sample_name, resid_sd < 0.1))
+    filter(conv, !grepl("_BR2", sample_name), resid_sd < 0.1)
 saveRDS(alt_hq_nparc_df, file = file.path(output_folder, "nparc_res_hq_df.RDS"))
 
 # remove biological replicates from analysis 
