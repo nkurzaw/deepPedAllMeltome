@@ -110,7 +110,7 @@ tpca_result_list <- bplapply(proteoform_by_sample_list,
 })
 
 saveRDS(tpca_result_list, 
-        file.path(output_folder, "tpca_result_list_narrow_range_focused_hq_filtered"))
+        file.path(output_folder, "tpca_result_list_narrow_range_focused_hq_filtered.RDS"))
 
 # tpca_result_list <- 
 #   readRDS(file.path(output_folder, "tpca_result_list_narrow_range_focused_hq_filtered.RDS"))
