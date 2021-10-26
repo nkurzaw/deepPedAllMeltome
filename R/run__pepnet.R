@@ -255,7 +255,7 @@ modularities <- compare_modularities(graphs = graphs,
 dev.off()
 
 write_delim(x = modularities,
-            file = file.path(output_folder, "modularity_comparison.txt"),
+            path = file.path(output_folder, "modularity_comparison.txt"),
             delim = "\t",
             col_names = TRUE)
 
