@@ -34,7 +34,7 @@ sourceDir(path = file.path(here("R/drugsens_cor")))
 # get sample meta data
 sample_meta_raw <- read_tsv(here("meta/sample_meta.txt"))
 
-# define ppi coaggregation analysis output folder
+# define drugsens analysis output folder
 drugsens_cor_folder <- here("drugsens_cor/output")
 
 # define output folder for figures
