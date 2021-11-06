@@ -57,6 +57,8 @@ auc_mat <- auc_df %>%
 auc_mat_norm <- preprocessCore::normalize.quantiles(auc_mat)
 dimnames(auc_mat_norm) <- dimnames(auc_mat)
 
+saveRDS(auc_mat_norm, file.path(output_folder, "auc_mat_norm.RDS"))
+
 # filter for minimal dss effect
 dss_df <- filter_drugsens_for_minimal_effect(dss_df, min_effect = 6)
 
@@ -66,6 +68,8 @@ dss_mat <- dss_df %>%
     spread(drug_name, dss) %>% 
     column_to_rownames("sample") %>% 
     as.matrix()
+
+saveRDS(dss_mat, file.path(output_folder, "dss_mat.RDS"))
 
 # match ids of auc and dss matices and adapt auc matrix rownames
 auc_matched_ids <- match(rownames(dss_mat), colnames(auc_mat_norm))
