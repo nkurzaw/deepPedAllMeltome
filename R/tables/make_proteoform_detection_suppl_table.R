@@ -98,5 +98,18 @@ full_suppl_df <- bind_rows(
     non_graph_df
 )
 
-write_delim(full_suppl_df, path = here("R/tables/suppl_table_proteoform_detection.csv"),
-            delim = ";")
+# get cell line fold changes
+proteofrom_spread_df <- proteoform_df %>% 
+    dplyr::select(proteoform_id = gene,
+                  sample_name_machine,
+                  temperature, 
+                  rel_value) %>% 
+    unite(new_col, sample_name_machine, temperature) %>% 
+    spread(new_col, rel_value)
+
+# join annotation and fold changes
+full_suppl_fc_df <- left_join(
+    full_suppl_df, proteofrom_spread_df,
+    by = "proteoform_id")
+
+write_tsv(full_suppl_fc_df, path = here("R/tables/suppl_table_proteoform_detection.txt"))
