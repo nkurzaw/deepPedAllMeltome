@@ -40,7 +40,7 @@ drugsens_cor_folder <- here("drugsens_cor/output")
 # define output folder for figures
 figure_output_folder <- here("R/figures")
 
-# load proteoform ratios
+# load proteoform data
 proteoforms <- readRDS(
     here("proteoform_detection/output/standard/proteoforms_narrow_range_focused.RDS"))
 
