@@ -38,9 +38,6 @@ sourceDir(path = file.path(here("R/nparc")))
 # get sample meta data
 sample_meta_raw <- read_tsv(here("meta/sample_meta.txt"))
 
-# define ppi coaggregation analysis output folder
-drugsens_cor_folder <- here("drugsens_cor/output")
-
 # define output folder for figures
 figure_output_folder <- here("R/figures")
 
@@ -191,24 +188,24 @@ ggsave(nparc_fit_p, filename = here("R/figures/figure_nparc_fit_schematic_nek2.p
 
 fstat_90_quan <- quantile(nparc_fstat_df$F_statistic, 0.9)
 
-inset <- ggplot(nparc_fstat_df, aes(F_statistic)) +
-    geom_density(fill = "black", alpha = 0.7) +
-    geom_rug(alpha = 0.7) +
-    geom_text(
-        data = tibble(x = 100, y = 0.065),
-        label = expression(''*italic(F)*'' == frac(('RSS'^0 - 'RSS'^1) * d[2], ('RSS'^1) * d[1])),
-        aes(x = x, y = y),
-        size = 2.5) +
-    # geom_label_repel(
-    #   y = 0,
-    #   label = "TP53_2",  
-    #   nudge_y = 0.02,
-    #   direction = "x",
-    #   segment.size = 0.25,
-    #   color = "cadetblue3", 
-    #   data = filter(nparc_fstat_df,id == "TP53_2")) +
-    xlab(expression(''*italic(F)*'-statistic')) +
-    theme_paper
+# inset <- ggplot(nparc_fstat_df, aes(F_statistic)) +
+#     geom_density(fill = "black", alpha = 0.7) +
+#     geom_rug(alpha = 0.7) +
+#     geom_text(
+#         data = tibble(x = 100, y = 0.065),
+#         label = expression(''*italic(F)*'' == frac(('RSS'^0 - 'RSS'^1) * d[2], ('RSS'^1) * d[1])),
+#         aes(x = x, y = y),
+#         size = 2.5) +
+#     # geom_label_repel(
+#     #   y = 0,
+#     #   label = "TP53_2",  
+#     #   nudge_y = 0.02,
+#     #   direction = "x",
+#     #   segment.size = 0.25,
+#     #   color = "cadetblue3", 
+#     #   data = filter(nparc_fstat_df,id == "TP53_2")) +
+#     xlab(expression(''*italic(F)*'-statistic')) +
+#     theme_paper
 
 nparc_volcano <- 
     ggplot(nparc_fstat_df, aes(rss-rssAlternative, F_statistic)) +
@@ -216,12 +213,12 @@ nparc_volcano <-
     geom_point(color = "black", alpha = 0.5,
                data = filter(nparc_fstat_df, F_statistic >= fstat_90_quan)) +
     geom_label_repel(
-        label = "NEK2",  
+        aes(label = id),  
         nudge_x = 1,
         direction = "x",
         segment.size = 0.25,
-        color = "black", 
-        data = filter(nparc_fstat_df,id == "NEK2_0")) +
+        color = "darkgray", 
+        data = filter(nparc_fstat_df,id %in% c("NEK2_0", "DNTT_1", "INPP4B_1"))) +
     scale_x_log10() +
     labs(x = bquote('RSS'^0~' - RSS'^1~''),
          y = expression(''*italic(F)*'-statistic')) +
@@ -229,12 +226,12 @@ nparc_volcano <-
     theme_paper
 
 
-nparc_volcano_p <- ggdraw(nparc_volcano) +
-    draw_plot(inset, .15, .6, .5, .35) 
+# nparc_volcano_p <- ggdraw(nparc_volcano) +
+#     draw_plot(inset, .15, .6, .5, .35) 
 
-ggsave(nparc_volcano_p, 
-       filename = here("R/figures/figure_nparc_volcano_nek2_highlighted_black_gray.pdf"), 
-       width = 10, height = 12, units = "cm")
+ggsave(nparc_volcano, 
+       filename = here("R/figures/figure_nparc_volcano_all_highlighted_black_gray.pdf"), 
+       width = 7, height = 7, units = "cm")
 
 # DNTT1 
 dntt1_1_df <- filter(proteoform_df, gene == "DNTT_1") %>% 
