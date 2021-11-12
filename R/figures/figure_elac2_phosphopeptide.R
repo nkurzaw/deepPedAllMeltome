@@ -135,5 +135,5 @@ proteoform_plot <- proteoform_df %>%
     theme(legend.position = "bottom")
 
 plot_grid(phospho_peptide_plot, proteoform_plot, ncol = 2)
-ggsave(here("R/figures/figure_elac2_phospho_peptide_suppl.pdf")), 
+ggsave(here("R/figures/figure_elac2_phospho_peptide_suppl.pdf"), 
             width = 12.5, height = 6, unit = "cm")
