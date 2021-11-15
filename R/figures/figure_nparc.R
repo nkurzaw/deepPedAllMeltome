@@ -209,8 +209,8 @@ fstat_90_quan <- quantile(nparc_fstat_df$F_statistic, 0.9)
 
 nparc_volcano <- 
     ggplot(nparc_fstat_df, aes(rss-rssAlternative, F_statistic)) +
-    geom_point(alpha = 0.25, color = "gray") +
-    geom_point(color = "black", alpha = 0.5,
+    geom_point(alpha = 0.25, color = "gray", size = 0.5) +
+    geom_point(color = "black", alpha = 0.5, size = 0.5,
                data = filter(nparc_fstat_df, F_statistic >= fstat_90_quan)) +
     geom_label_repel(
         aes(label = id),  
@@ -218,7 +218,8 @@ nparc_volcano <-
         direction = "x",
         segment.size = 0.25,
         color = "darkgray", 
-        data = filter(nparc_fstat_df,id %in% c("NEK2_0", "DNTT_1", "INPP4B_1"))) +
+        data = filter(nparc_fstat_df,id %in% 
+                          c("NEK2_0", "DNTT_1", "INPP4B_1", "TP53_1", "FBP1_1"))) +
     scale_x_log10() +
     labs(x = bquote('RSS'^0~' - RSS'^1~''),
          y = expression(''*italic(F)*'-statistic')) +
@@ -231,7 +232,7 @@ nparc_volcano <-
 
 ggsave(nparc_volcano, 
        filename = here("R/figures/figure_nparc_volcano_all_highlighted_black_gray.pdf"), 
-       width = 7, height = 7, units = "cm")
+       width = 7, height = 8, units = "cm")
 
 # DNTT1 
 dntt1_1_df <- filter(proteoform_df, gene == "DNTT_1") %>% 
