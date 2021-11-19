@@ -199,19 +199,19 @@ ggsave(filename = here("R/figures/fig_abl1_imatinib_nilotinib_cor.pdf"),
 # read in results from limma analysis
 limma_out_df <- readRDS(file.path(drugsens_cor_folder, "limma_out_df.RDS"))
 
-all_limma_out_anno_df <- all_limma_out_df %>% 
+limma_out_anno_df <- limma_out_df %>% 
     mutate(id = 1:n()) 
 
 # make volcano plot
-limma_volcano <- ggplot(filter(all_limma_out_anno_df, p_adj >= 0.1), 
+limma_volcano <- ggplot(filter(limma_out_anno_df, p_adj >= 0.1), 
                         aes(logFC, -log10(P.Value))) +
     stat_binhex(aes(alpha = log10(..count..)), bins = 100, fill = "black") +
     geom_point(alpha = 0.5, color = "black", 
-               data = filter(all_limma_out_anno_df, p_adj < 0.1)) +
+               data = filter(limma_out_anno_df, p_adj < 0.1)) +
     labs(x = bquote('log'[2]*'(fold change)'),
          y = bquote('-log'[10]*'('*italic(p)*'-value)')) +
     geom_point(alpha = 0.5, color = "green", 
-               data = filter(all_limma_out_anno_df, p_adj < 0.1, grepl("FIGNL", testedProt))) +
+               data = filter(limma_out_anno_df, p_adj < 0.1, grepl("FIGNL", testedProt))) +
     theme_paper +
     theme(legend.position = "none")
 
