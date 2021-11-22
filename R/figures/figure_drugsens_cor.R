@@ -61,6 +61,12 @@ cl_colors <-  c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD"
 names(cl_colors) <- sort(
     unique(gsub("_BR2", "", proteoform_df$sample_name_machine)))
 
+# read in preprocessed drugsens data
+dss_mat <- readRDS(here("drugsens_cor/output/dss_mat.RDS"))
+
+# read in preprocessed AUC matrix
+auc_mat_norm <- readRDS(here("drugsens_cor/output/auc_mat_norm.RDS"))
+
 # get ABL1 fusion subtypes
 abl_fusion_anno <- 
     sample_meta_raw %>% filter(grepl("ABL", subtype))
@@ -216,10 +222,10 @@ limma_volcano <- ggplot(filter(limma_out_anno_df, p_adj >= 0.1),
     theme(legend.position = "none")
 
 # loop over significant hits and make scatter plots of thermal stability and drug sens.
-pList <- lapply(seq(nrow(filter(all_limma_out_df, p_adj < 0.1))), function(i) {
-    protn <- all_limma_out_df$testedProt[i] 
-    drugn <- all_limma_out_df$rowname[i]
-    p_adj <- all_limma_out_df$p_adj[i]
+pList <- lapply(seq(nrow(filter(limma_out_anno_df, p_adj < 0.1))), function(i) {
+    protn <- limma_out_anno_df$testedProt[i] 
+    drugn <- limma_out_anno_df$rowname[i]
+    p_adj <- limma_out_anno_df$p_adj[i]
     
     title_string <- paste(drugn, protn, sep = " vs. ")
     
@@ -251,9 +257,9 @@ pList <- lapply(seq(nrow(filter(all_limma_out_df, p_adj < 0.1))), function(i) {
         ggpubr::stat_cor(method = "pearson",
                          label.x.npc = "left",
                          cor.coef.name = "rho") +
-        geom_text(aes(x, y), label = round(p_adj, 3), 
-                  data = tibble(x = 0.9 * max(plot_df$aumc, na.rm = TRUE),
-                                y = 0.9 * max(plot_df$dss, na.rm = TRUE))) +
+        # geom_text(aes(x, y), label = round(p_adj, 3), 
+        #           data = tibble(x = 0.9 * max(plot_df$aumc, na.rm = TRUE),
+        #                         y = 0.9 * max(plot_df$dss, na.rm = TRUE))) +
         ggtitle(title_string) +
         theme_paper +
         theme(legend.position = "none")
