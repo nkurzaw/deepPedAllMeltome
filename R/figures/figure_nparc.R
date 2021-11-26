@@ -38,6 +38,9 @@ sourceDir(path = file.path(here("R/nparc")))
 # get sample meta data
 sample_meta_raw <- read_tsv(here("meta/sample_meta.txt"))
 
+# get sample meta data on b-cell development
+bcell_maturation_anno <- read_tsv(here("meta/sample_meta_stages.txt"))
+
 # define output folder for figures
 figure_output_folder <- here("R/figures")
 
@@ -386,8 +389,59 @@ inpp4b_p <- ggplot(inpp4b_1_plot_df,
 ggsave(inpp4b_p, filename = here("R/figures/figure_inpp4b_1_stage_example_opt_colors.pdf"), 
        width = 10, height = 6, units = "cm")
 
-dntt1_inpp4b_combo <- plot_grid(dntt1_p, inpp4b_p, ncol = 1, align = "v")
 
-ggsave(dntt1_inpp4b_combo, 
-       filename = here("R/figures/figure_dntt1_inpp4b_1_combo_example_opt_colors.pdf"), 
-       width = 10, height = 12, units = "cm")
+### FBP1_1
+fbp1_1_df <- filter(proteoform_df, gene == "FBP1_1") %>% 
+    filter(!grepl("_BR2", sample_name_machine)) %>% 
+    filter(sample_name_machine %in% filter(nparc_res_hq_df, id == "FBP1_1")$sample_name) %>% 
+    na.omit()
+
+fbp1_1_alt_fit_param <- NPARC:::invokeParallelFits(
+    x = fbp1_1_df$temperature, 
+    y = fbp1_1_df$rel_value, 
+    id = fbp1_1_df$gene, 
+    groups = fbp1_1_df$sample_name_machine,
+    BPPARAM = SerialParam(progressbar = TRUE),
+    maxAttempts = control$maxAttempts,
+    returnModels = FALSE,
+    start = control$start)
+
+fbp1_1_alt_fit_df <- 
+    tibble(temperature = rep(temp_range, length(unique(fbp1_1_df$sample_name_machine))),
+           group = rep(
+               unique(fbp1_1_df$sample_name_machine),
+               each = length(temp_range)
+           )) %>% 
+    left_join(fbp1_1_alt_fit_param$modelMetrics, 
+              by = "group") %>% 
+    rowwise() %>% 
+    mutate(y_hat = (1 - pl)  / (1 + exp((b - a/temperature))) + pl) %>% 
+    ungroup
+
+fbp1_1_plot_df <- fbp1_1_alt_fit_param$modelPredictions %>% 
+    left_join(sample_meta_raw %>% 
+                  dplyr::select(group = sample_name_machine, subtype),
+              by = "group") 
+
+fbp1_p <- ggplot(fbp1_1_df %>% mutate(group = sample_name_machine), 
+                   aes(temperature, rel_value)) +
+    geom_line(aes(temperature, y_hat, color = group, group = group), #, linetype = Assigned_stage), 
+              data = fbp1_1_alt_fit_df)+#,
+    #color = "darkgray") +
+    geom_point(aes(color = subtype)) +
+    # geom_segment(aes(xend = x, yend = .fitted), 
+    #              linetype = "dashed") +
+    #scale_color_manual("", values = cl_colors) +
+    scale_color_manual("Sample", values = cl_colors) +
+    #scale_x_continuous(breaks = c(40, 55)) +
+    labs(x = x_label,
+         y = y_label) +
+    #facet_wrap(~ subtype, ncol = 11) +
+    ggtitle("FBP1 proteoform 1") +
+    theme_paper +
+    theme(legend.position = "none")
+
+ggsave(fbp1_p, 
+       filename = here("R/figures/figure_fbp1.pdf"), 
+       width = 7, height = 7, units = "cm")
+
