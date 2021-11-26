@@ -1,5 +1,8 @@
 plot_auc_dss_per_protein_drug_scatter <- 
-  function(auc_mat, dss_mat, sample_anno, protein_id, drug_name){
+  function(auc_mat, dss_mat, sample_anno, 
+           protein_id, drug_name, 
+           label_samples = FALSE,
+           color_var = "sample"){
     
     stopifnot(protein_id %in% rownames(auc_mat) &
                 drug_name %in% colnames(dss_mat))
@@ -25,14 +28,18 @@ plot_auc_dss_per_protein_drug_scatter <-
       left_join(sample_anno %>% 
                   dplyr::select(sample = sample_name_machine,
                                 subtype), 
-                by = "sample")
+                by = "sample") %>% 
+      mutate(sample = gsub("_", "-", sample))
     
     p <- ggplot(plot_df, aes(aumc, dss)) +
-      geom_point(aes(color = subtype)) +
-      geom_smooth(method = "lm") +
+      geom_point(aes(color = get(color_var))) +
+      geom_smooth(method = "lm", color = "black") +
       ggpubr::stat_cor(method = "pearson") +
-      ggrepel::geom_text_repel(aes(label = sample)) +
       ggtitle(title_string)
+    
+    if(label_samples){
+      p <- p + ggrepel::geom_text_repel(aes(label = sample))
+    }
     
     return(p)
   }
