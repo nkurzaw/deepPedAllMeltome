@@ -152,7 +152,7 @@ proteoforms_vsn_norm <- vsn_normalize_by_temperature(e_set = proteoforms_intensi
 proteoforms <- build_ratios_to_lowest_temperature(e_set = proteoforms_vsn_norm, 
                                                   sample_col = "sample_name")
 
-saveRDS(object = proteoforms, file = file.path(output_folder, "proteoforms.RDS"))
+saveRDS(object = proteoforms, file = file.path(output_folder, "proteoforms_narrow_range_focused.RDS"))
 
 # proteoforms <- readRDS(file = file.path(output_folder, "proteoforms.RDS"))
 
