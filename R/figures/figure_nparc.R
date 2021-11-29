@@ -428,7 +428,7 @@ fbp1_p <- ggplot(fbp1_1_df %>% mutate(group = sample_name_machine),
     geom_line(aes(temperature, y_hat, color = group, group = group), #, linetype = Assigned_stage), 
               data = fbp1_1_alt_fit_df)+#,
     #color = "darkgray") +
-    geom_point(aes(color = subtype)) +
+    geom_point(aes(color = group)) +
     # geom_segment(aes(xend = x, yend = .fitted), 
     #              linetype = "dashed") +
     #scale_color_manual("", values = cl_colors) +
@@ -442,6 +442,55 @@ fbp1_p <- ggplot(fbp1_1_df %>% mutate(group = sample_name_machine),
     theme(legend.position = "none")
 
 ggsave(fbp1_p, 
-       filename = here("R/figures/figure_fbp1.pdf"), 
+       filename = here("R/figures/figure_nparc_fbp1_1_melting_profile.pdf"), 
        width = 7, height = 7, units = "cm")
 
+# read in qMS data and make abundance boxplot for FBP1
+qms_eset <- readRDS(here("data/proteins.B.RDS"))
+
+# make proteoform data frame
+qms_df <- biobroom::tidy.ExpressionSet(
+    qms_eset) 
+
+# get qms sample annotation
+qms_pdata_df <- pData(qms_eset) %>% 
+    as_tibble() %>% 
+    dplyr::select(sample = proteomics_id,
+                  sample_name = Cell_Line_Name_Paper) %>% 
+    mutate(sample_name_machine = sub("h", "", sub("_LL", "", gsub("-", "_", sample_name)))) %>% 
+    mutate(cell_line = sub("_BR2", "", sample_name_machine))
+
+# join anno with qms data
+qms_anno_df <- left_join(qms_df, qms_pdata_df, by = "sample")
+
+# prepare FBP1-specific data set with thermal stability annotation
+fbp1_qms_df <- qms_anno_df %>% 
+    filter(gene == "FBP1") %>% 
+    mutate(thermal_stability_group = case_when(
+        sample_name_machine %in% c("RCH_ACV", "LC4_1", "P30_OHKUBO", "KASUMI_2", 
+                                   "MHH_CALL_3", "KOPN_8","COG_319", "RCH_ACV_BR2", 
+                                   "LC4_1_BR2", "P30_OHKUBO_BR2", "KASUMI_2_BR2", 
+                                   "MHH_CALL_3_BR2", "KOPN_8_BR2","COG_319_BR2") ~ 
+            "high",
+        TRUE ~ "low")) %>% 
+    mutate(thermal_stability_group = factor(
+        thermal_stability_group, levels = c("low",
+                                            "high"))) %>% 
+    filter(cell_line %in% fbp1_1_df$sample_name_machine)
+
+# make boxplot
+fbp1_qms_bp <- ggplot(fbp1_qms_df, aes(thermal_stability_group, value)) +
+    geom_boxplot(outlier.color = NA) +
+    geom_jitter(aes(color = cell_line), width = 0.1) +
+    scale_color_manual("Cell line", values = cl_colors) +
+    ggsignif::geom_signif(comparisons = list(c("low", "high")),
+                          test = t.test) +
+    labs(x = "FBP1_1 thermal stability", 
+         y = bquote('FBP1 log'[2]*'fold change to mean')) +
+    coord_cartesian(ylim = c(-2, 3.5)) +
+    theme_paper +
+    theme(legend.position = "none")
+
+ggsave(fbp1_qms_bp, 
+       filename = here("R/figures/figure_fbp1_qms_boxplot.pdf"), 
+       width = 7, height = 7, units = "cm")
