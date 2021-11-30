@@ -32,8 +32,8 @@ plot_auc_dss_per_protein_drug_scatter <-
       mutate(sample = gsub("_", "-", sample))
     
     p <- ggplot(plot_df, aes(aumc, dss)) +
-      geom_point(aes(color = get(color_var))) +
       geom_smooth(method = "lm", color = "black") +
+      geom_point(aes(color = get(color_var))) +
       ggpubr::stat_cor(method = "pearson") +
       ggtitle(title_string)
     
