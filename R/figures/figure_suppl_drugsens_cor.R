@@ -357,7 +357,7 @@ crkl_2_proteoform_profile_plot <-
     ggtitle("CRKL proteoform 2")
 
 # combined CRKL figure
-proteoform_df %>% 
+crkl_1_2_profile <- proteoform_df %>% 
     filter(gene %in% c("CRKL_1", "CRKL_2"), !grepl("BR", sample_name_machine)) %>% 
     left_join(nparc_res_hq_df %>% dplyr::select(id, sample_name, conv),
               by = c("gene" = "id", "sample_name_machine" = "sample_name")) %>% 
@@ -424,8 +424,23 @@ crkl_2_imatinib_scatter <- plot_auc_dss_per_protein_drug_scatter(
     auc_mat = auc_full_hq_mat_norm, dss_mat = dss_mat, protein_id = "CRKL_2", 
     drug_name = "Imatinib", sample_anno = sample_meta_raw) + 
     scale_color_manual(values = cl_colors) +
+    ggtitle("Imatinib vs. CRKL_2") +
+    labs(x = "Area under the melting curve",
+         y = "Drug sensitivity") +
     theme_paper +
     theme(legend.position = "none") 
+
+# assemble crkl suppl. figure
+plot_grid(
+    crkl_1_2_profile,
+    plot_grid(crkl_qms_dss_scatter,
+              crkl_2_imatinib_scatter,
+              ncol = 1, nrow = 2),
+    rel_widths = c(2, 1),
+    ncol = 2, nrow = 1)
+
+ggsave(filename = here("R/figures/suppl_fig_drugsens_cor_crkl_extended.pdf"), 
+       width = 21, height = 14, units = "cm")
 
 # EPS8L2 qMS Eltanexor scatter
 eps8l2_qms_dss_df <- qms_anno_df %>% 
