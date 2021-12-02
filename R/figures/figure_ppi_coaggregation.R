@@ -3,6 +3,7 @@ library(tidyverse)
 library(DESeq2)
 library(fgsea)
 library(reactome.db)
+library(clusterProfiler)
 
 # define plotting style for manuscript
 theme_paper <- theme_bw(base_size = 6) +
