@@ -23,6 +23,9 @@ theme_paper <- theme_bw(base_size = 6) +
           axis.text = element_text(size = 8),
           legend.text = element_text(size = 8))
 
+# read in sample meta info
+sample_meta_stages <- read_tsv(here("meta/sample_meta_stages.txt"))
+
 # define ppi coaggregation analysis output folder
 ppi_coaggregation_folder <- here("ppi_coaggregation/output")
 
@@ -146,6 +149,7 @@ coldata <- data.frame(
                        "differential", "coaggregation")
 ) %>% 
     left_join(sample_meta_stages %>% 
+                  mutate(sample = gsub("-", "_", sample_name)) %>% 
                   dplyr::select(sample_name=sample, sex=gender, stage=Assigned_stage),
               by = "sample_name")
 
