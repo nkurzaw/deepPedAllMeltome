@@ -60,6 +60,26 @@ multi_cell_line_rtpca_df <- readRDS(
     file.path(ppi_coaggregation_folder,
               "multi_cell_line_rtpca_robust_df.RDS"))
 
+# read in and preprocess drugsens data
+dss_df <- read_delim(
+    here("data/2020-09-09_sDSS_2D_matrix_20_with_annotation_Meltome.txt"), 
+    delim = "\t") %>% 
+    dplyr::select(-Mechanism.Targets, -Putative.Target.Protein,
+                  -Class.explained, -High.phase.Approval.status,
+                  -Res_code, -Alias, -Activity.modifier,
+                  -Active_inactive.in.clinic, -Solvent,
+                  -High.conc..nM., -InChI, -ChEMBL.ID) %>% 
+    gather(sample, dss, -FIMM.ID, -DRUG.NAME) %>% 
+    dplyr::select(id = FIMM.ID, drug_name = DRUG.NAME, sample, dss) %>% 
+    mutate(sample = gsub("\\.", "_", sample)) %>% 
+    mutate(sample = gsub("X_", "", sample)) %>% 
+    mutate(sample = gsub("Kasumi", "KASUMI", sample)) %>% 
+    # filter out COG_319 due to bad quality
+    filter(sample != "COG_319")
+
+# filter for minimal dss effect
+dss_df <- filter_drugsens_for_minimal_effect(dss_df, min_effect = 6)
+
 # volcano plot of multi-cell line tpca results
 ppi_volcano <- ggplot(multi_cell_line_rtpca_df, aes(max_rss - min_rss, f_stat)) + 
     geom_point(alpha = 0.25, color = "gray") + 
@@ -108,12 +128,10 @@ ggsave(cxxc1_setd1a_profiles, filename =
            file.path(figure_output_folder, "fig4_cxxc1_setd1a_profiles.pdf"),
        width = 12, height = 12, units = "cm")
 
-# get Euclidean distances for all cell lines
-    
 
 # RNA-seq analysis
 # read in RNA-seq counts
-rna_seq_df <- read_tsv("data/ALL_raw_counts_with_samples_info_Nils_symbols.txt") %>% 
+rna_seq_df <- read_tsv(here("data/ALL_raw_counts_with_samples_info.txt")) %>% 
     column_to_rownames(var = "Gene.Name") %>% 
     dplyr::select(-matches("BR")) %>% 
     as.matrix()
@@ -188,7 +206,8 @@ cxxc1_2_setd1a_3_dist_dss_df <- cxxc1_2_setd1a_3_dist_df %>%
 
 ggplot(cxxc1_2_setd1a_3_dist_dss_df, aes(mean_dist < 0.1, dss)) + 
     geom_boxplot() + 
-    ggsignif::geom_signif(comparisons = list(c("TRUE", "FALSE"))) + 
+    ggsignif::geom_signif(comparisons = list(c("TRUE", "FALSE")),
+                          test = t.test) + 
     geom_jitter(aes(color = sample), width = 0.05) +
     scale_color_manual("Cell line", values = cl_colors) +
     labs(x = "Eucledian distance CXXC1_2:SETD1A_3 < 0.1",
@@ -197,5 +216,5 @@ ggplot(cxxc1_2_setd1a_3_dist_dss_df, aes(mean_dist < 0.1, dss)) +
     theme_paper +
     theme(legend.position = "bottom")
 
-ggsave(file.path(figure_output_folder, "fig4_drug_sens.pdf"), 
+ggsave(file.path(figure_output_folder, "fig4_cxxc1_2_setd1a_3_drug_sens.pdf"), 
        width = 8, height = 10, units = "cm")
