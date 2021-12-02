@@ -95,7 +95,7 @@ fignl_proteoform_df <- proteoform_df %>%
     filter(conv == TRUE)  %>% 
     mutate(sample_name_machine = gsub("_", "-", sample_name_machine))
 
-# plot FIGNL_1 proteoforms across cell lines
+# plot FIGNL1_1 proteoforms across cell lines
 fignl_proteoform_profile_plot <- 
     ggplot(fignl_proteoform_df, 
            aes(temperature, rel_value, color = sample_name_machine)) +
@@ -119,6 +119,36 @@ fignl_proteoform_profile_plot <-
 
 ggsave(filename = here("R/figures/fig_fignl1_spline_fit.pdf"), 
        width = 7, height = 7, units = "cm")
+
+# get fignl specific proteoform dataset
+fignl2_proteoform_df <- proteoform_df %>% 
+    filter(gene == "FIGNL1_2", !grepl("BR", sample_name_machine)) %>% 
+    left_join(nparc_res_hq_df %>% dplyr::select(id, sample_name, conv),
+              by = c("gene" = "id", "sample_name_machine" = "sample_name")) %>% 
+    filter(conv == TRUE)  %>% 
+    mutate(sample_name_machine = gsub("_", "-", sample_name_machine))
+
+# plot FIGNL1_2 proteoforms across cell lines
+fignl2_proteoform_profile_plot <- 
+    ggplot(fignl2_proteoform_df, 
+           aes(temperature, rel_value, color = sample_name_machine)) +
+    geom_smooth(aes(group = sample_name_machine), method = "lm",
+                formula = 'y ~ splines::ns(x, df = 4)',
+                se = FALSE, alpha = 0.5, size = 0.75) +
+    # stat_smooth(aes(group = gene, linetype = gene),
+    #             method = "nls", se = FALSE,
+    #             formula = y ~ (1-a)/(1 + exp(-(b/x - c))) + a,
+    #             method.args = list(start = c(a = 0.1, b = 1550, c = 40),
+    #                                algorithm = 'port'),
+    #             geom = "line",
+    #             size = 1) +
+    scale_color_manual("Subtype", 
+                       values = cl_colors) +
+    theme_paper +
+    theme(legend.position = "none") +
+    labs(x = x_label,
+         y = y_label) +
+    ggtitle("FIGNL1 proteoform 2")
 
 # read in results from limma analysis
 limma_out_df <- readRDS(file.path(drugsens_cor_folder, "limma_out_df.RDS"))
@@ -265,17 +295,40 @@ fignl1_qms_vino_dss_scatter <-
     theme_paper +
     theme(legend.position = "none")
 
+fignl2_eribulin_scatter <- plot_auc_dss_per_protein_drug_scatter(
+    auc_mat = auc_full_hq_mat_norm, dss_mat = dss_mat, protein_id = "FIGNL1_2", 
+    drug_name = "Eribulin", sample_anno = sample_meta_raw) + 
+    scale_color_manual(values = cl_colors) +
+    ggtitle("Eribulin vs. FIGNL1_2") +
+    labs(x = "Area under the melting curve",
+         y = "Drug sensitivity") +
+    theme_paper +
+    theme(legend.position = "none") 
+
+fignl2_vino_scatter <- plot_auc_dss_per_protein_drug_scatter(
+    auc_mat = auc_full_hq_mat_norm, dss_mat = dss_mat, protein_id = "FIGNL1_2", 
+    drug_name = "Vinorelbine", sample_anno = sample_meta_raw) + 
+    scale_color_manual(values = cl_colors) +
+    ggtitle("Vinorelbine vs. FIGNL1_2") +
+    labs(x = "Area under the melting curve",
+         y = "Drug sensitivity") +
+    theme_paper +
+    theme(legend.position = "none") 
+
 # make combo plot of FIGNL1_1 profile and drug associations
 plot_grid(fignl_proteoform_profile_plot, pList[[1]], pList[[3]],
           pList[[4]], pList[[6]], pList[[7]],
           fignl1_qms_fignl1_1_auc_scatter, 
           fignl1_qms_dss_scatter,
           fignl1_qms_vino_dss_scatter,
+          fignl2_proteoform_profile_plot, 
+          fignl2_eribulin_scatter, 
+          fignl2_vino_scatter,
           labels = letters[1:9],
-          ncol = 3, nrow = 3)
+          ncol = 3, nrow = 4)
 
 ggsave(filename = here("R/figures/suppl_fig_drugsens_cor_fignl_extended.pdf"), 
-       width = 21, height = 21, units = "cm")
+       width = 21, height = 28, units = "cm")
 
 # CRKL figures
 # get crkl_1 specific proteoform dataset
