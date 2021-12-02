@@ -149,7 +149,7 @@ coldata <- data.frame(
                        "differential", "coaggregation")
 ) %>% 
     left_join(sample_meta_stages %>% 
-                  mutate(sample = gsub("-", "_", sample_name)) %>% 
+                  mutate(sample = sub("h$", "", sub("_LL", "", gsub("-", "_", sample_name)))) %>% 
                   dplyr::select(sample_name=sample, sex=gender, stage=Assigned_stage),
               by = "sample_name")
 
