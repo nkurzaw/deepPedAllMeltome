@@ -27,6 +27,34 @@ theme_paper <- theme_bw(base_size = 6) +
 # read in sample meta info
 sample_meta_stages <- read_tsv(here("meta/sample_meta_stages.txt"))
 
+# load nparc hq results
+nparc_res_hq_df <- readRDS(here("nparc/output/standard/nparc_res_hq_df.RDS"))
+
+# load proteoform ratios
+proteoforms <- readRDS(
+    here("proteoform_detection/output/standard/proteoforms_narrow_range_focused.RDS"))
+
+# create proteoform data frame
+proteoform_df <- biobroom::tidy.ExpressionSet(
+    proteoforms, 
+    addPheno = TRUE) %>% 
+    mutate(temperature = as.numeric(temperature)) %>% 
+    group_by(sample_name, gene) %>% 
+    mutate(rel_value = value / value[temperature == 41]) %>% 
+    ungroup
+
+cl_colors <-  c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", 
+                "#117777", "#44AAAA", "#77CCCC", "#117744", "#44AA77", "#88CCAA", 
+                "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", 
+                "#771122", "#AA4455")
+# Peter Carl - R-Bloggers 02/2013 "The Paul Tol 21-color salute"
+names(cl_colors) <- sort(
+    unique(gsub("_", "-", sub("_BR2", "", proteoform_df$sample_name_machine))))
+
+# create full hq auc df
+auc_full_hq_df <- nparc_res_hq_df %>% 
+    dplyr::select(sample = sample_name, id, aumc) 
+
 # RNA-seq analysis
 # read in RNA-seq counts
 rna_seq_df <- read_tsv(here("data/ALL_raw_counts_with_samples_info.txt")) %>% 
@@ -81,3 +109,23 @@ fgseaRes <- fgsea(pathways = pathways,
                   stats    = deseq_ranks,
                   minSize  = 13,
                   maxSize  = 500)
+
+# check thermal stability of G6PD
+g6pd_auc_df <- auc_full_hq_df %>% 
+    filter(grepl("G6PD_", id)) %>% 
+    filter(!sample %in% c("697","COG_355", "COG_394", "MHH_CALL_2")) %>% 
+    mutate(group = ifelse(sample %in%  c("COG_319", "LC4_1", "KASUMI_9", "KASUMI_2", 
+                                         "MHH_CALL_3", "P30_OHKUBO", "RCH_ACV", "KOPN_8"), 
+                                                         "high", "low")) %>% 
+    mutate(sample = gsub("_", "-", sample))
+
+ggplot(g6pd_auc_df, aes(group, aumc)) +
+    geom_boxplot() +
+    geom_jitter(aes(color = sample), width = 0.1) +
+    ggsignif::geom_signif(comparisons = list(c("high", "low")), test = t.test) +
+    scale_color_manual(values = cl_colors) +
+    facet_wrap(~id) +
+    labs(x = "FBP1_1 thermal stability",
+         y = "Area under the melting curve") +
+    theme_paper +
+    theme(legend.position = "none")
