@@ -34,7 +34,8 @@ plot_auc_dss_per_protein_drug_scatter <-
     p <- ggplot(plot_df, aes(aumc, dss)) +
       geom_smooth(method = "lm", color = "black") +
       geom_point(aes(color = get(color_var))) +
-      ggpubr::stat_cor(method = "pearson") +
+      ggpubr::stat_cor(method = "pearson",
+                       cor.coef.name = "rho") +
       ggtitle(title_string)
     
     if(label_samples){
