@@ -557,5 +557,14 @@ eps8l2_1_eltanexor_scatter <- plot_auc_dss_per_protein_drug_scatter(
     theme(legend.position = "none") 
 
 
-ggsave(filename = here("R/figures/suppl_fig_drugsens_cor_eps8l2_1.pdf"), 
+plot_grid(eps8l2_proteoform_profile_plot,
+          plot_grid(
+              eps8l2_qms_dss_scatter,
+              eps8l2_1_eltanexor_scatter,
+              labels = letters[2:3],
+              ncol = 1
+          ), rel_widths = c(2, 1),
+          labels = c("a", NA))
+
+ggsave(filename = here("R/figures/suppl_fig_drugsens_cor_eps8l2_combo.pdf"), 
        width = 21, height = 14, units = "cm")
