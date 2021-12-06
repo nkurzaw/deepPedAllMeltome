@@ -245,7 +245,8 @@ fignl1_qms_fignl1_1_auc_scatter <-
     ggplot(fignl1_qms_fignl1_1_auc_df, aes(value.x, value.y)) +
     geom_smooth(method = "lm", color = "black") +
     geom_point(aes(color = sample)) +
-    ggpubr::stat_cor(method = "pearson") +
+    ggpubr::stat_cor(method = "pearson",
+                     cor.coef.name = "rho") +
     scale_color_manual(values = cl_colors) +
     labs(x = bquote('log'[2]*' relative protein abundance'),
          y = "Drug sensitivity") +
@@ -266,7 +267,8 @@ fignl1_qms_dss_scatter <-
     ggplot(fignl1_qms_dss_df, aes(value, dss)) +
     geom_smooth(method = "lm", color = "black") +
     geom_point(aes(color = sample)) +
-    ggpubr::stat_cor(method = "pearson") +
+    ggpubr::stat_cor(method = "pearson",
+                     cor.coef.name = "rho") +
     scale_color_manual(values = cl_colors) +
     labs(x = bquote('log'[2]*' relative protein abundance'),
          y = "Drug sensitivity") +
@@ -327,7 +329,7 @@ plot_grid(fignl_proteoform_profile_plot, pList[[1]], pList[[3]],
           labels = letters[1:9],
           ncol = 3, nrow = 4)
 
-ggsave(filename = here("R/figures/suppl_fig_drugsens_cor_fignl_extended.pdf"), 
+ggsave(filename = here("R/figures/suppl_fig_drugsens_cor_fignl_extended2.pdf"), 
        width = 21, height = 28, units = "cm")
 
 # CRKL figures
@@ -461,10 +463,10 @@ crkl_qms_dss_df <- qms_anno_df %>%
     mutate(sample = gsub("_", "-", sample))
 
 crkl_qms_dss_scatter <- 
-    ggplot(eps8l2_qms_dss_df, aes(value, dss)) +
+    ggplot(crkl_qms_dss_df, aes(value, dss)) +
     geom_smooth(method = "lm", color = "black") +
     geom_point(aes(color = sample)) +
-    ggpubr::stat_cor(method = "pearson") +
+    ggpubr::stat_cor(method = "pearson", cor.coef.name = "rho") +
     scale_color_manual(values = cl_colors) +
     labs(x = bquote('log'[2]*' relative protein abundance'),
          y = "Drug sensitivity") +
@@ -485,7 +487,7 @@ crkl_2_imatinib_scatter <- plot_auc_dss_per_protein_drug_scatter(
 
 # assemble crkl suppl. figure
 plot_grid(
-    crkl_1_2_profile,
+    crkl_1_2_profile + theme(legend.position = "bottom"),
     plot_grid(crkl_qms_dss_scatter,
               crkl_2_imatinib_scatter,
               ncol = 1, nrow = 2),
@@ -508,7 +510,7 @@ eps8l2_qms_dss_scatter <-
     ggplot(eps8l2_qms_dss_df, aes(value, dss)) +
     geom_smooth(method = "lm", color = "black") +
     geom_point(aes(color = sample)) +
-    ggpubr::stat_cor(method = "pearson") +
+    ggpubr::stat_cor(method = "pearson", cor.coef.name = "rho") +
     scale_color_manual(values = cl_colors) +
     labs(x = bquote('log'[2]*' relative protein abundance'),
          y = "Drug sensitivity") +
