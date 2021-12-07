@@ -289,7 +289,8 @@ fignl1_qms_vino_dss_scatter <-
     ggplot(fignl1_qms_vino_dss_df, aes(value, dss)) +
     geom_smooth(method = "lm", color = "black") +
     geom_point(aes(color = sample)) +
-    ggpubr::stat_cor(method = "pearson") +
+    ggpubr::stat_cor(method = "pearson",
+                     cor.coef.name = "rho") +
     scale_color_manual(values = cl_colors) +
     labs(x = bquote('log'[2]*' relative protein abundance'),
          y = "Drug sensitivity") +
