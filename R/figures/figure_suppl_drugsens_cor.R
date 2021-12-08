@@ -515,7 +515,7 @@ eps8l2_qms_dss_scatter <-
     scale_color_manual(values = cl_colors) +
     labs(x = bquote('log'[2]*' relative protein abundance'),
          y = "Drug sensitivity") +
-    ggtitle("EPS8L2 abundance vs. Eltanexor") +
+    ggtitle("Eltanexor vs. EPS8L2 abundance") +
     theme_paper +
     theme(legend.position = "none") 
 
@@ -525,7 +525,18 @@ eps8l2_proteoform_df <- proteoform_df %>%
     left_join(nparc_res_hq_df %>% dplyr::select(id, sample_name, conv),
               by = c("gene" = "id", "sample_name_machine" = "sample_name")) %>% 
     filter(conv == TRUE) %>% 
-    mutate(sample_name_machine = gsub("_", "-", sample_name_machine))
+    bind_rows(bind_rows(lapply(unique(filter(proteoform_df, !grepl("BR", sample_name_machine))$sample_name_machine), function(samp){
+        proteoform_df %>% 
+            filter(grepl("EPS8L2_", gene), !grepl("BR", sample_name_machine)) %>% 
+            left_join(nparc_res_hq_df %>% dplyr::select(id, sample_name, conv),
+                      by = c("gene" = "id", "sample_name_machine" = "sample_name")) %>% 
+            filter(conv == TRUE) %>% 
+            group_by(temperature) %>% 
+            summarise(rel_value = mean(rel_value, na.rm = TRUE), .groups = "keep") %>% 
+            ungroup() %>% 
+            mutate(gene = "mean", sample_name_machine = samp, subtype = "mean")
+    }))) %>% 
+    mutate(sample_name_machine = gsub("_", "-", sample_name_machine)) 
 
 # plot EPS8L2 proteoforms across cell lines
 eps8l2_proteoform_profile_plot <- 
@@ -542,20 +553,23 @@ eps8l2_proteoform_profile_plot <-
     #                                algorithm = 'port'),
     #             geom = "line",
     #             alpha = 0.5) +
-    scale_color_manual("Cell line", 
+    scale_color_manual("Cell line",
                        values = cl_colors) +
     facet_wrap(~sample_name_machine) +
     theme_paper +
     theme(legend.position = "bottom") +
     labs(x = x_label,
          y = y_label) +
-    ggtitle("EPS8L2 proteoforms 1 and 2") 
+    ggtitle("EPS8L2 proteoforms 1 & 2") 
 
 
 eps8l2_1_eltanexor_scatter <- plot_auc_dss_per_protein_drug_scatter(
     auc_mat = auc_mat_norm, dss_mat = dss_mat, protein_id = "EPS8L2_1", 
     drug_name = "Eltanexor", sample_anno = sample_meta_raw) + 
     scale_color_manual(values = cl_colors) +
+    labs(x = "Area under the melting curve",
+         y = "Drug sensitivity") +
+    ggtitle("Eltanexor vs. EPS8L2_1") +
     theme_paper +
     theme(legend.position = "none") 
 
@@ -571,3 +585,116 @@ plot_grid(eps8l2_proteoform_profile_plot,
 
 ggsave(filename = here("R/figures/suppl_fig_drugsens_cor_eps8l2_combo.pdf"), 
        width = 21, height = 14, units = "cm")
+
+# PIP4K2C
+
+# get PIP4K2C specific proteoform dataset
+pip4k2c_proteoform_df <- proteoform_df %>% 
+    filter(grepl("PIP4K2C_", gene), !grepl("BR", sample_name_machine)) %>% 
+    left_join(nparc_res_hq_df %>% dplyr::select(id, sample_name, conv),
+              by = c("gene" = "id", "sample_name_machine" = "sample_name")) %>% 
+    filter(conv == TRUE) %>% 
+    bind_rows(bind_rows(lapply(unique(filter(proteoform_df, !grepl("BR", sample_name_machine))$sample_name_machine), function(samp){
+        proteoform_df %>% 
+            filter(grepl("PIP4K2C_", gene), !grepl("BR", sample_name_machine)) %>% 
+            left_join(nparc_res_hq_df %>% dplyr::select(id, sample_name, conv),
+                      by = c("gene" = "id", "sample_name_machine" = "sample_name")) %>% 
+            filter(conv == TRUE) %>% 
+            group_by(temperature) %>% 
+            summarise(rel_value = mean(rel_value, na.rm = TRUE), .groups = "keep") %>% 
+            ungroup() %>% 
+            mutate(gene = "mean", sample_name_machine = samp, subtype = "mean")
+    }))) %>% 
+    mutate(sample_name_machine = gsub("_", "-", sample_name_machine),
+           gene = factor(gene, levels = c("PIP4K2C_1", "PIP4K2C_2", "PIP4K2C_3", "mean"))) %>% 
+    group_by(sample_name_machine) %>% 
+    filter(length(unique(gene)) > 1) %>% 
+    ungroup
+
+
+# plot PIP4K2C proteoforms across cell lines
+pip4k2c_proteoform_profile_plot <- 
+    ggplot(pip4k2c_proteoform_df, 
+           aes(temperature, rel_value, color = sample_name_machine)) +
+    #geom_point() +
+    geom_smooth(aes(group = gene, linetype = gene), method = "lm",
+                formula = 'y ~ splines::ns(x, df = 4)',
+                se = FALSE, alpha = 0.5, size = 0.75) +
+    # stat_smooth(aes(group = sample_name_machine),
+    #             method = "nls", se = FALSE,
+    #             formula = y ~ (1-a)/(1 + exp(-(b/x - c))) + a,
+    #             method.args = list(start = c(a = 0, b = 550, c = 10),
+    #                                algorithm = 'port'),
+    #             geom = "line",
+    #             alpha = 0.5) +
+    scale_color_manual("Cell line",
+                       values = cl_colors) +
+    facet_wrap(~sample_name_machine) +
+    theme_paper +
+    theme(legend.position = "bottom") +
+    labs(x = x_label,
+         y = y_label) +
+    ggtitle("PIP4K2C proteoforms 1 & 2") 
+
+# PIP4K2C qMS Eltanexor scatter
+pip4k2c_qms_dss_df <- qms_anno_df %>% 
+    filter(gene == "PIP4K2C") %>% 
+    dplyr::select(gene, value, sample = sample_name_machine) %>% 
+    left_join(dss_df %>% filter(drug_name == "Idasanutlin"),
+              by = "sample") %>% 
+    na.omit() %>% 
+    mutate(sample = gsub("_", "-", sample))
+
+pip4k2c_qms_dss_scatter <- 
+    ggplot(pip4k2c_qms_dss_df, aes(value, dss)) +
+    geom_smooth(method = "lm", color = "black") +
+    geom_point(aes(color = sample)) +
+    ggpubr::stat_cor(method = "pearson", cor.coef.name = "rho") +
+    scale_color_manual(values = cl_colors) +
+    labs(x = bquote('log'[2]*' relative protein abundance'),
+         y = "Drug sensitivity") +
+    ggtitle("Idasanutlin vs. PIP4K2C abundance") +
+    theme_paper +
+    theme(legend.position = "none") 
+
+pip4k2c_1_eltanexor_scatter <- plot_auc_dss_per_protein_drug_scatter(
+    auc_mat = auc_mat_norm, dss_mat = dss_mat, protein_id = "PIP4K2C_1", 
+    drug_name = "Idasanutlin", sample_anno = sample_meta_raw) + 
+    scale_color_manual(values = cl_colors) +
+    labs(x = "Area under the melting curve",
+         y = "Drug sensitivity") +
+    ggtitle("Idasanutlin vs. PIP4K2C_1") +
+    theme_paper +
+    theme(legend.position = "none") 
+
+pip4k2c_3_eltanexor_scatter <- plot_auc_dss_per_protein_drug_scatter(
+    auc_mat = auc_mat_norm, dss_mat = dss_mat, protein_id = "PIP4K2C_3", 
+    drug_name = "Idasanutlin", sample_anno = sample_meta_raw) + 
+    scale_color_manual(values = cl_colors) +
+    labs(x = "Area under the melting curve",
+         y = "Drug sensitivity") +
+    ggtitle("Idasanutlin vs. PIP4K2C_3") +
+    theme_paper +
+    theme(legend.position = "none") 
+
+pip4k2c_legend <- get_legend(pip4k2c_proteoform_profile_plot)
+
+plot_grid(
+    plot_grid(pip4k2c_proteoform_profile_plot +
+                  theme(legend.position = "none"),
+          plot_grid(
+              pip4k2c_qms_dss_scatter,
+              pList[[22]],
+              labels = letters[2:3],
+              ncol = 1
+          ), rel_widths = c(2, 1),
+          labels = c("a", NA)),
+    plot_grid(pip4k2c_legend, 
+              pip4k2c_1_eltanexor_scatter,
+              pip4k2c_3_eltanexor_scatter, 
+              ncol = 3, labels = c("d", "e")),
+    nrow = 2, ncol = 1, rel_heights = c(2, 1)
+)
+
+ggsave(filename = here("R/figures/suppl_fig_drugsens_cor_pip4k2c_combo.pdf"), 
+       width = 21, height = 21, units = "cm")
