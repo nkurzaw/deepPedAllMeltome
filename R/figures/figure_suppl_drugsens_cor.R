@@ -692,7 +692,7 @@ plot_grid(
     plot_grid(pip4k2c_legend, 
               pip4k2c_1_eltanexor_scatter,
               pip4k2c_3_eltanexor_scatter, 
-              ncol = 3, labels = c("d", "e")),
+              ncol = 3, labels = c("", "d", "e")),
     nrow = 2, ncol = 1, rel_heights = c(2, 1)
 )
 
