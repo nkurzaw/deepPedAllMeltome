@@ -636,6 +636,10 @@ pip4k2c_proteoform_profile_plot <-
          y = y_label) +
     ggtitle("PIP4K2C proteoforms 1 & 2") 
 
+ggsave(pip4k2c_proteoform_profile_plot,
+       filename = here("R/figures/suppl_fig_drugsens_cor_pip4k2c_profiles.pdf"), 
+       width = 21, height = 21, units = "cm")
+
 # PIP4K2C qMS Eltanexor scatter
 pip4k2c_qms_dss_df <- qms_anno_df %>% 
     filter(gene == "PIP4K2C") %>% 
