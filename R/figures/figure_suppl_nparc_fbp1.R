@@ -117,6 +117,7 @@ g6pd_auc_df <- auc_full_hq_df %>%
     mutate(group = ifelse(sample %in%  c("COG_319", "LC4_1", "KASUMI_9", "KASUMI_2", 
                                          "MHH_CALL_3", "P30_OHKUBO", "RCH_ACV", "KOPN_8"), 
                                                          "high", "low")) %>% 
+    mutate(group = factor(group, levels = c("low", "high"))) %>% 
     mutate(sample = gsub("_", "-", sample))
 
 ggplot(g6pd_auc_df, aes(group, aumc)) +
@@ -129,3 +130,8 @@ ggplot(g6pd_auc_df, aes(group, aumc)) +
          y = "Area under the melting curve") +
     theme_paper +
     theme(legend.position = "none")
+
+# check for correlation with FBP1 AUC
+fbp1_1_auc_df <- auc_full_hq_df %>% 
+    filter(grepl("^FBP1_1", id)) %>% 
+    filter(!sample %in% c("697","COG_355", "COG_394", "MHH_CALL_2"))
