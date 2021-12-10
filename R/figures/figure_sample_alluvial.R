@@ -49,7 +49,7 @@ cl_colors <-  c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA",
                 "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455")
 # Peter Carl - R-Bloggers 02/2013 "The Paul Tol 21-color salute"
 names(cl_colors) <- sort(
-    unique(gsub("_BR2", "", proteoform_df$sample_name_machine)))
+    unique(gsub("_", "-", sub("_BR2", "", proteoform_df$sample_name_machine))))
 
 # create full sample meta data frame
 sample_meta_df <-  sample_meta_stages_raw %>% 
@@ -69,14 +69,15 @@ sample_meta_df <- sample_meta_df %>%
     within(subtype[subtype == "PTMA-TMSB4X"] <- "other") %>%
     within(stage[stage == "pre-B other"] <- "pre-B") %>%
     mutate(stage = factor(stage, levels = c("pre-pro-B", "pro-B", "early pre-B", 
-                                            "pre-B", "late pre-B")))
+                                            "pre-B", "late pre-B"))) %>% 
+    mutate(sample_name_machine = gsub("_", "-", sample_name_machine))
     
 # make alluvial plot
 ggplot(sample_meta_df, aes(y = 1, axis1 = subtype, 
                            axis2 = sample_name_machine,
                            axis3 = stage)) +
     geom_alluvium(aes(fill = sample_name_machine), width = 1/20) +
-    geom_stratum(width = 1/20, fill = "gray", color = "darkgray") +
+    geom_stratum(width = 1/20, fill = "gray", color = "gray20") +
     geom_label(stat = "stratum", aes(label = after_stat(stratum)),
                size = 2.75) +
     scale_fill_manual(values = cl_colors) +
@@ -84,4 +85,4 @@ ggplot(sample_meta_df, aes(y = 1, axis1 = subtype,
     theme(legend.position = "none")
 
 ggsave(filename = here("R/figures/figure_sample_overview.pdf"), 
-       width = 18, height = 8, units = "cm")
+       width = 18, height = 9, units = "cm")
