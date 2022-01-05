@@ -34,6 +34,15 @@ nparc_res_hq_df <- readRDS(here("nparc/output/standard/nparc_res_hq_df.RDS"))
 proteoforms <- readRDS(
     here("proteoform_detection/output/standard/proteoforms_narrow_range_focused.RDS"))
 
+# define proteoform detection output folder
+proteoform_detection_folder <- here("proteoform_detection/output/standard/")
+
+# read in meta data
+sample_meta_raw <- read_tsv(file = here("meta/sample_meta.txt"))
+
+# read in peptide data
+peptides <- readRDS(file.path(proteoform_detection_folder, "peptides.RDS"))
+
 # create proteoform data frame
 proteoform_df <- biobroom::tidy.ExpressionSet(
     proteoforms, 
@@ -135,3 +144,19 @@ ggplot(g6pd_auc_df, aes(group, aumc)) +
 fbp1_1_auc_df <- auc_full_hq_df %>% 
     filter(grepl("^FBP1_1", id)) %>% 
     filter(!sample %in% c("697","COG_355", "COG_394", "MHH_CALL_2"))
+
+# check G6PD median peptide melting curves
+g6pd_median_peptides_df <- biobroom::tidy.ExpressionSet(
+    peptides[which(peptides@featureData$first_protein_id %in% c("ENSP00000377192.3", "ENSP00000377194.2")),], 
+    addPheno = TRUE) %>% 
+    mutate(temperature = as.numeric(temperature)) %>% 
+    group_by(sample_name, gene) %>% 
+    mutate(rel_value = value / value[temperature == 41]) %>% 
+    group_by(sample_name, temperature) %>% 
+    summarize(median_rel_value = median(rel_value, na.rm = TRUE)) %>% 
+    ungroup %>% 
+    filter(!grepl("_BR", sample_name)) %>% 
+    mutate(group = ifelse(sample_name %in%  c("COG-319", "LC4-1", "KASUMI-9", "KASUMI-2", 
+                                         "MHH_CALL-3", "P30-OHKUBO", "RCH-ACV", "KOPN-8"), 
+                          "high", "low")) 
+
