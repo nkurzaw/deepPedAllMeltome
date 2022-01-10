@@ -90,7 +90,7 @@ ppi_volcano <- ggplot(multi_cell_line_rtpca_df, aes(max_rss - min_rss, f_stat)) 
     geom_point(color = "black", alpha = 0.5,
                data = filter(multi_cell_line_rtpca_df,
                              f_stat > quantile(multi_cell_line_rtpca_df$f_stat, 0.9))) + 
-    geom_text_repel(
+    ggrepel::geom_text_repel(
         aes(label = pair),  
         nudge_y = 200,
         direction = "y",
