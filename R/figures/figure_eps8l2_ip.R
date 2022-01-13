@@ -93,6 +93,92 @@ ggplot(bethyl_out_df, aes(logFC, -log10(P.Value))) +
                              data = filter(bethyl_out_df, adj.P.Val < 0.10 | grepl("ABI1|EPS8", gene_name))) +
     theme_bw()
 
+############################################
+# only with high thermal stability cell lines
+
+# create expression set
+high_ts_col_dat <- data.frame(
+    cell_line = sub("_.+", "", colnames(vsn_norm_mat[,1:12])),
+    antibody = gsub(".+_", "", colnames(vsn_norm_mat[,1:12])))
+rownames(high_ts_col_dat) <- colnames(vsn_norm_mat[,1:12])
+
+high_ts_eset <- ExpressionSet(vsn_norm_mat[,1:12], 
+                              phenoData = AnnotatedDataFrame(high_ts_col_dat))
+
+# perform limma analysis
+high_ts_X <- model.matrix(~0 + high_ts_col_dat$antibody)
+colnames(high_ts_X) <- c("ab_abcam", "ab_bethyl", "ab_ig_control")
+high_ts_fit <- lmFit(high_ts_eset, high_ts_X)
+
+# check abcam 
+contrast.matrix.abcam.highTS <- makeContrasts(ab_abcam - ab_ig_control, levels = high_ts_X)
+high_ts_fit_abcam <- contrasts.fit(high_ts_fit, contrast.matrix.abcam.highTS)
+high_ts_fit_abcam <- eBayes(high_ts_fit_abcam)
+volcanoplot(high_ts_fit_abcam)
+
+high_ts_abcam_out_df <- topTable(high_ts_fit_abcam, n=Inf, adjust="BH")
+high_ts_abcam_out_df <- as_tibble(high_ts_abcam_out_df, rownames = "gene_name") %>% 
+    mutate(gene_name_only = sub(".+_", "", gene_name))
+
+ggplot(high_ts_abcam_out_df, aes(logFC, -log10(P.Value))) +
+    geom_point(color = "gray") +
+    geom_point(color = "black", data = filter(high_ts_abcam_out_df, adj.P.Val < 0.10)) +
+    ggrepel::geom_text_repel(aes(label = gene_name_only),
+                             data = filter(high_ts_abcam_out_df, adj.P.Val < 0.10 | grepl("ABI1|EPS8", gene_name))) +
+    theme_bw()
+
+
+# check bethyl
+contrast.matrix.bethyl.highTS <- makeContrasts(ab_bethyl - ab_ig_control, levels = high_ts_X)
+high_ts_fit_bethyl <- contrasts.fit(high_ts_fit, contrast.matrix.bethyl.highTS)
+high_ts_fit_bethyl <- eBayes(high_ts_fit_bethyl)
+volcanoplot(high_ts_fit_bethyl)
+
+high_ts_bethyl_out_df <- topTable(high_ts_fit_bethyl, n=Inf, adjust="BH")
+high_ts_bethyl_out_df <- as_tibble(high_ts_bethyl_out_df, rownames = "gene_name") %>% 
+    mutate(gene_name_only = sub(".+_", "", gene_name))
+
+ggplot(high_ts_bethyl_out_df, aes(logFC, -log10(P.Value))) +
+    geom_point(color = "gray") +
+    geom_point(color = "black", data = filter(high_ts_bethyl_out_df, adj.P.Val < 0.10)) +
+    ggrepel::geom_text_repel(aes(label = gene_name_only),
+                             data = filter(high_ts_bethyl_out_df, adj.P.Val < 0.10 | grepl("ABI1|EPS8", gene_name))) +
+    theme_bw()
+
+############################################
+# only with low thermal stability cell lines
+
+# create expression set
+low_ts_col_dat <- data.frame(
+    cell_line = sub("_.+", "", colnames(vsn_norm_mat[,-c(1:12)])),
+    antibody = gsub(".+_", "", colnames(vsn_norm_mat[,-c(1:12)])))
+rownames(low_ts_col_dat) <- colnames(vsn_norm_mat[,-c(1:12)])
+
+low_ts_eset <- ExpressionSet(vsn_norm_mat[,-c(1:12)], 
+                              phenoData = AnnotatedDataFrame(low_ts_col_dat))
+
+# perform limma analysis
+low_ts_X <- model.matrix(~0 + low_ts_col_dat$antibody)
+colnames(low_ts_X) <- c("ab_abcam", "ab_bethyl", "ab_ig_control")
+low_ts_fit <- lmFit(low_ts_eset, low_ts_X)
+
+# check abcam 
+contrast.matrix.abcam.lowTS <- makeContrasts(ab_abcam - ab_ig_control, levels = low_ts_X)
+low_ts_fit_abcam <- contrasts.fit(low_ts_fit, contrast.matrix.abcam.lowTS)
+low_ts_fit_abcam <- eBayes(low_ts_fit_abcam)
+volcanoplot(low_ts_fit_abcam)
+
+low_ts_abcam_out_df <- topTable(low_ts_fit_abcam, n=Inf, adjust="BH")
+low_ts_abcam_out_df <- as_tibble(low_ts_abcam_out_df, rownames = "gene_name") %>% 
+    mutate(gene_name_only = sub(".+_", "", gene_name))
+
+ggplot(low_ts_abcam_out_df, aes(logFC, -log10(P.Value))) +
+    geom_point(color = "gray") +
+    geom_point(color = "black", data = filter(low_ts_abcam_out_df, adj.P.Val < 0.10)) +
+    ggrepel::geom_text_repel(aes(label = gene_name_only),
+                             data = filter(low_ts_abcam_out_df, adj.P.Val < 0.10 | grepl("ABI1|EPS8", gene_name))) +
+    theme_bw()
+
 # turn input data into log fold changes to compare thermal stability groups
 abcam_rel_fc_mat_df <- tibble(
     KASUMI2_EPS8L2 = vsn_norm_mat[,1] - vsn_norm_mat[,3],
