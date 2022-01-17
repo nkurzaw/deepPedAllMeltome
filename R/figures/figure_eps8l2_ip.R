@@ -224,3 +224,57 @@ ggplot(fc_out_df, aes(logFC, -log10(P.Value))) +
     ggrepel::geom_text_repel(aes(label = gene_name_only),
                              data = filter(fc_out_df, adj.P.Val < 0.10 | grepl("ABI1|EPS8", gene_name))) +
     theme_bw()
+
+# combine both ABs in analysis
+both_ab_rel_fc_mat_df <- tibble(
+    KASUMI2_EPS8L2_abcam = vsn_norm_mat[,1] - vsn_norm_mat[,3],
+    KASUMI2_EPS8L2_bethyl = vsn_norm_mat[,2] - vsn_norm_mat[,3],
+    KASUMI9_EPS8L2_abcam = vsn_norm_mat[,4] - vsn_norm_mat[,6],
+    KASUMI9_EPS8L2_bethyl = vsn_norm_mat[,5] - vsn_norm_mat[,6],
+    KOPN8_EPS8L2_abcam = vsn_norm_mat[,7] - vsn_norm_mat[,9],
+    KOPN8_EPS8L2_bethyl = vsn_norm_mat[,6] - vsn_norm_mat[,9],
+    MHH.CALL2_EPS8L2_abcam = vsn_norm_mat[,10] - vsn_norm_mat[,12],
+    MHH.CALL2_EPS8L2_bethyl = vsn_norm_mat[,11] - vsn_norm_mat[,12],
+    NALL1_EPS8L2_abcam = vsn_norm_mat[,13] - vsn_norm_mat[,15],
+    NALL1_EPS8L2_bethyl = vsn_norm_mat[,14] - vsn_norm_mat[,15],
+    SEM_EPS8L2_abcam = vsn_norm_mat[,16] - vsn_norm_mat[,18],
+    SEM_EPS8L2_bethyl = vsn_norm_mat[,17] - vsn_norm_mat[,18],
+    TMD5_EPS8L2_abcam = vsn_norm_mat[,19] - vsn_norm_mat[,21],
+    TMD5_EPS8L2_bethyl = vsn_norm_mat[,20] - vsn_norm_mat[,21],
+)
+
+both_ab_rel_fc_mat <- as.matrix(both_ab_rel_fc_mat_df)
+rownames(both_ab_rel_fc_mat) <- rownames(vsn_norm_mat)
+
+# create expression set
+both_ab_fc_col_dat <- data.frame(
+    cell_line = sub("_.+", "", colnames(both_ab_rel_fc_mat)),
+    group = factor(c(rep("high", 8), rep("low", 6))),
+    ab = rep(c("abcam", "bethyl"), 7))
+rownames(both_ab_fc_col_dat) <- colnames(both_ab_rel_fc_mat)
+
+both_ab_fc_eset <- ExpressionSet(both_ab_rel_fc_mat, 
+                         phenoData = AnnotatedDataFrame(both_ab_fc_col_dat))
+
+# perform limma analysis
+X <- model.matrix(~0 + both_ab_fc_col_dat$group + both_ab_fc_col_dat$ab)
+colnames(X) <- c("ts_high", "ts_low", "ab_bethyl")
+
+fit <- lmFit(both_ab_fc_eset, X)    
+
+# check contrast
+contrast.matrix.fc.both.ab <- makeContrasts(ts_high - ts_low, levels = X)
+fit_fc_both_ab <- contrasts.fit(fit, contrast.matrix.fc.both.ab)
+fit_fc_both_ab <- eBayes(fit_fc_both_ab)
+volcanoplot(fit_fc_both_ab)
+
+both_ab_fc_out_df <- topTable(fit_fc_both_ab, n=Inf, adjust="BH")
+both_ab_fc_out_df <- as_tibble(both_ab_fc_out_df, rownames = "gene_name") %>% 
+    mutate(gene_name_only = sub(".+_", "", gene_name))
+
+ggplot(both_ab_fc_out_df, aes(logFC, -log10(P.Value))) +
+    geom_point(color = "gray") +
+    geom_point(color = "black", data = filter(both_ab_fc_out_df, adj.P.Val < 0.10)) +
+    ggrepel::geom_text_repel(aes(label = gene_name_only),
+                             data = filter(both_ab_fc_out_df, adj.P.Val < 0.10 | grepl("ABI1|EPS8", gene_name))) +
+    theme_bw()
