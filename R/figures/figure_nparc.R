@@ -494,3 +494,30 @@ fbp1_qms_bp <- ggplot(fbp1_qms_df, aes(thermal_stability_group, value)) +
 ggsave(fbp1_qms_bp, 
        filename = here("R/figures/figure_fbp1_qms_boxplot.pdf"), 
        width = 7, height = 7, units = "cm")
+
+# prepare TBC1D10C-specific data set with thermal stability annotation
+tbc1_qms_df <- qms_anno_df %>% 
+    filter(gene == "TBC1D10C") %>% 
+    mutate(eps8l2_thermal_stability_group = case_when(
+        sample_name %in% c("TMD5_BR2", "SEM", "NALL-1", "KOPN-8", "LC4-1", 
+                           "COG-LL-319h", "REH") ~ "high",
+        sample_name %in% c("KASUMI-2", "MHH-CALL-2", "KASUMI-9_BR2",
+                           "SUP-B15", "HAL-01") ~ "low",
+        TRUE ~ "none")) %>% 
+    filter(eps8l2_thermal_stability_group != "none") %>% 
+    mutate(eps8l2_thermal_stability_group = factor(
+        eps8l2_thermal_stability_group, levels = c("low",
+                                            "high"))) 
+
+# make boxplot
+tbc1_qms_bp <- ggplot(tbc1_qms_df, aes(eps8l2_thermal_stability_group, value)) +
+    geom_boxplot(outlier.color = NA) +
+    geom_jitter(aes(color = cell_line), width = 0.1) +
+    scale_color_manual("Cell line", values = cl_colors) +
+    ggsignif::geom_signif(comparisons = list(c("low", "high")),
+                          test = t.test) +
+    labs(x = "EPS8L2_2 thermal stability", 
+         y = bquote('TBC1D10C log'[2]*'fold change to mean')) +
+    coord_cartesian(ylim = c(-2, 3.5)) +
+    theme_paper +
+    theme(legend.position = "none")
