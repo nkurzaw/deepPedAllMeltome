@@ -6,6 +6,7 @@ library(limma)
 library(here)
 library(fgsea)
 library(reactome.db)
+library(clusterProfiler)
 
 # define plotting style for manuscript
 theme_paper <- theme_bw(base_size = 6) +
@@ -133,3 +134,37 @@ ggplot(plot_df, aes(log2FoldChange, -log10(pvalue))) +
     geom_point(color = "gray", alpha = 0.2) +
     geom_point(color = "green", data = filter(plot_df, interleukin10)) +
     theme_paper
+
+# plot Interleukin-10 enrichment plot
+plotEnrichment(pathways[["Signaling by Interleukins"]],
+               deseq_ranks) + 
+    labs(title="Signaling by Interleukins") +
+    theme_paper
+
+ggsave(file.path(figure_output_folder, "fig6_signaling_interleukins_depletion.pdf"), 
+       width = 8, height = 5, units = "cm")
+
+# plot Interleukin-10 enrichment plot
+plotEnrichment(pathways[["Interleukin-10 signaling"]],
+               deseq_ranks) + 
+    labs(title="Interleukin-10 signaling") +
+    theme_paper
+
+ggsave(file.path(figure_output_folder, "fig6_signaling_interleukin10_depletion.pdf"), 
+       width = 8, height = 5, units = "cm")
+
+
+high_eps8l2_genes <- filter(plot_df, padj < 0.1, log2FoldChange > 0, !is.na(ENTREZID))$ENTREZID
+universe_genes <- filter(plot_df, !is.na(ENTREZID))$ENTREZID
+
+# GO analysis
+ego <- enrichGO(gene          = high_eps8l2_genes,
+                universe      = universe_genes,
+                OrgDb         = org.Hs.eg.db::org.Hs.eg.db,
+                ont           = "MF",
+                pAdjustMethod = "BH",
+                pvalueCutoff  = 0.05,
+                qvalueCutoff  = 0.1,
+                readable      = TRUE)
+
+dotplot(ego)
