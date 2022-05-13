@@ -68,6 +68,24 @@ number_of_proteoforms_df <- number_of_proteoforms_df %>%
     filter(!duplicated(gene)) %>% 
     mutate(rank = 1:n())
 
+uniprot_length_df <- read_delim(
+    here("data/uniprot-filtered-reviewed%3Ayes+AND+organism%3A%22Homo+sapiens+%28Human%29+%5B96--.tab"),
+    delim = "\t") %>% 
+    dplyr::select(`Gene names`, Length) %>% 
+    mutate(gene = sub(" .+", "", `Gene names`)) %>% 
+    dplyr::select(gene, Length) %>% 
+    group_by(gene) %>% 
+    summarize(max_length = max(Length)) %>% 
+    ungroup
+
+num_prot_length_df <- left_join(number_of_proteoforms_df, uniprot_length_df, by = "gene")
+
+ggplot(num_prot_length_df, aes(n, log2(max_length))) +
+    geom_point(alpha = 0.2) +
+    ggpubr::stat_cor(cor.coef.name = "rho") +
+    theme_paper
+    
+
 ggplot(number_of_proteoforms_df, aes(rank, n)) + 
     geom_point(aes(color = enough_data)) +
     labs(y = "Number of proteoforms per gene",
