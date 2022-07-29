@@ -64,6 +64,7 @@ evaluate_similarity <- function (e_set = peptides,
                         expr_ioi <- e_set_ioi %>%
                           exprs() %>%
                           as.data.frame() %>%
+                          rownames_to_column() %>% 
                           mutate(rownames = fData(e_set_ioi)$peptide) %>%
                           column_to_rownames("rownames") %>%
                           t()

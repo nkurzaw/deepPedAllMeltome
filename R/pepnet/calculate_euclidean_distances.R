@@ -16,6 +16,11 @@ calculate_euclidean_distances <- function (data,
                                            feature_data,
                                            which_features = c("protein_ids")) {
   
+  # make sure data is fully numeric
+  data_numeric <- apply(data, 2, as.numeric)
+  rownames(data_numeric) <- rownames(data)
+  data <- data_numeric
+  
   # determine the total number of samples
   num_samples <- nrow(data)
   
