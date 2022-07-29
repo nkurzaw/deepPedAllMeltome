@@ -30,7 +30,7 @@ sourceDir <- function(path, ...) {
     source(file.path(path, nm), ...)
   }
 }
-sourceDir(path = file.path("pepnet"))
+sourceDir(path = file.path("R/pepnet"))
 
 # set up parallelisation
 BPPARAM <- BiocParallel::MulticoreParam(workers = 2, progressbar = TRUE)
