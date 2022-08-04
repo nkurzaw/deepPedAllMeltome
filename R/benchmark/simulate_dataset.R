@@ -1,6 +1,7 @@
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(here)
 library(BiocParallel)
 
 simulate_peptide_profiles <- function(protein_name = "test",
@@ -112,3 +113,7 @@ ggplot(test_combo_df, aes(temperature, rel_value,
 # simulate full dataset
 set.seed(123)
 full_simulated_pep_cov_15_df <- simulate_dataset()
+
+saveRDS(full_simulated_pep_cov_15_df, 
+        file = here("R/benchmark/full_simulated_pep_cov_15_df.RDS"))
+
