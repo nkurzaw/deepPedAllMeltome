@@ -1,0 +1,75 @@
+library(data.table)
+library(tidyverse)
+library(Biobase)
+library(matrixStats)
+library(Hmisc)
+library(igraph)
+library(BiocParallel)
+library(biobroom)
+library(cowplot)
+library(ggrepel)
+library(ggpmisc)
+library(RColorBrewer)
+library(here)
+library(pROC)
+
+library(leiden)
+
+sourceDir <- function(path, ...) {
+    for (nm in list.files(path, pattern = "\\.[RrSsQq]$")) {
+        source(file.path(path, nm), ...)
+    }
+}
+sourceDir(path = file.path(here("R/pepnet")))
+
+simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_eset.RDS"))
+
+BPPARAM <- BiocParallel::MulticoreParam(workers = 4)
+
+# similarity analysis (euclidean distance)
+sim_similarities <- evaluate_similarity(e_set = simulated_peptides_pep_cov_15,
+                                    filter_params = list(min_num_peptides_per_ioi = 10,
+                                                         max_num_peptides_per_ioi = Inf,
+                                                         min_peptides_per_sample = 2,
+                                                         min_samples_with_sufficient_peptides = 20),
+                                    include_ambiguous_ids = TRUE,
+                                    method = "euclidean",
+                                    transform_fun = function (x) 1 / (1 + x),
+                                    BPPARAM = BPPARAM)
+
+saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities.RDS"))
+
+# build graph
+graphs <- build_graphs(similarities = sim_similarities,
+                       e_set = simulated_peptides_pep_cov_15,
+                       filter_params = list(lower_similarity_cutoff = 0,
+                                            lower_n_cutoff = 20,
+                                            upper_q_cutoff = Inf),
+                       BPPARAM = BPPARAM)
+
+# store
+saveRDS(object = graphs, file = here("R/benchmark/graphs.RDS"))
+
+# detect communities
+graphs <- detect_communities(graphs = graphs,
+                             detect_algorithm = cluster_leiden,
+                             BPPARAM = BPPARAM)
+
+# store
+saveRDS(object = graphs, file = here("R/benchmark/graphs_comms.RDS"))
+
+# filter graphs for 0 modularity
+graphs_01 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 0) %>% unlist()]
+
+graphs_001 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 0.01) %>% unlist()]
+
+eval_df <- tibble(
+    protein_name = names(graphs),
+    modularity = sapply(graphs, get.graph.attribute, name = "proteoform_modularity")
+) %>% 
+    arrange(desc(modularity)) %>% 
+    mutate(tp = as.numeric(grepl("tp", protein_name)))
+
+roc_obj <- roc(eval_df$tp ~ eval_df$modularity)
+auc(roc_obj)
+plot(roc_obj)
