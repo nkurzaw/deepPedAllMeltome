@@ -11,24 +11,29 @@ simulate_peptide_profiles <- function(protein_name = "test",
                                       noise_sd = 0.1,
                                       slope = 0.75,
                                       temperature_range = 
-                                          c(41, 44, 47, 50, 53, 56, 59, 63)){
-    peptide_tms <- rnorm(mean = tm, sd = within_pf_noise, n = pep_cov)
-    peptide_df <- bind_rows(lapply(seq(pep_cov), function(i){
-        rounded_tm <- round(peptide_tms[i], 3)
-        tibble(protein_name = protein_name,
-               proteoform_name = proteoform_name,
-               peptide = paste(proteoform_name, i, sep = "_"),
-               temperature = seq((41 - rounded_tm), 25, 1) + rounded_tm,
-               rel_value = sapply(1/(1 + exp(slope*seq((41 - rounded_tm), 25, 1))), function(x)
-                                  rnorm(n = 1, mean = x, sd = noise_sd)))
+                                          c(41, 44, 47, 50, 53, 56, 59, 63),
+                                      n_cell_lines = 4){
+    peptide_tms <- lapply(seq(n_cell_lines), function(i) 
+        rnorm(mean = tm, sd = within_pf_noise, n = pep_cov))
+    peptide_df <- bind_rows(lapply(seq(n_cell_lines), function(ncell){
+        bind_rows(lapply(seq(pep_cov), function(i){
+            rounded_tm <- round(peptide_tms[[ncell]][i], 3)
+            pep_df <- tibble(protein_name = protein_name,
+                   proteoform_name = proteoform_name,
+                   peptide = paste(proteoform_name, i, sep = "_"),
+                   temperature = seq((41 - rounded_tm), 25, 1) + rounded_tm,
+                   rel_value = sapply(1/(1 + exp(slope*seq((41 - rounded_tm), 25, 1))), function(x)
+                       rnorm(n = 1, mean = x, sd = noise_sd)))
+            return(pep_df)
         })) %>% 
-        filter(temperature %in% temperature_range) %>% 
-        within(rel_value[temperature == 41] <- 1) %>% 
-        # make sure values don't get negative
-        within(rel_value[rel_value < 0.1] <- rel_value[rel_value < 0.1] + 0.1) %>% 
-        within(rel_value[rel_value == 0] <- 0.01) %>% 
-        within(rel_value[rel_value < 0] <-  0.001)
-        
+            filter(temperature %in% temperature_range) %>% 
+            within(rel_value[temperature == 41] <- 1) %>% 
+            # make sure values don't get negative
+            within(rel_value[rel_value < 0.1] <- rel_value[rel_value < 0.1] + 0.1) %>% 
+            within(rel_value[rel_value == 0] <- 0.01) %>% 
+            within(rel_value[rel_value < 0] <-  0.001) %>% 
+            mutate(cell_line = paste0("cellline_", ncell))
+    }))
        
     return(peptide_df)
 }
