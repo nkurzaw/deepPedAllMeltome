@@ -104,7 +104,8 @@ simulate_dataset <- function(n_tns = 1000,
 set.seed(123)
 test_peptide_df <- simulate_peptide_profiles()
 ggplot(test_peptide_df, aes(temperature, rel_value)) + 
-    geom_line(aes(color = peptide))
+    geom_line(aes(color = peptide)) +
+    facet_wrap(~cell_line)
 
 # try out simulating a single protein with two proteoforms
 test_combo_df <- simulate_protein_with_2_proteoforms(
@@ -114,7 +115,18 @@ test_combo_df <- simulate_protein_with_2_proteoforms(
 ggplot(test_combo_df, aes(temperature, rel_value,
                           group = interaction(peptide, proteoform_name), 
                           color = proteoform_name)) +
-    geom_line()
+    geom_line() +
+    facet_wrap(~cell_line)
+
+test_combo_df <- simulate_protein_with_2_proteoforms(
+    peptide_coverage = 15, tm_diff = 2
+)
+
+ggplot(test_combo_df, aes(temperature, rel_value,
+                          group = interaction(peptide, proteoform_name), 
+                          color = proteoform_name)) +
+    geom_line() +
+    facet_wrap(~cell_line)
 
 
 # simulate full dataset
