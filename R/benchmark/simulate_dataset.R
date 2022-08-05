@@ -14,11 +14,12 @@ simulate_peptide_profiles <- function(protein_name = "test",
                                           c(41, 44, 47, 50, 53, 56, 59, 63)){
     peptide_tms <- rnorm(mean = tm, sd = within_pf_noise, n = pep_cov)
     peptide_df <- bind_rows(lapply(seq(pep_cov), function(i){
+        rounded_tm <- round(peptide_tms[i], 3)
         tibble(protein_name = protein_name,
                proteoform_name = proteoform_name,
-               peptide = paste(protein_name, i, sep = "_"),
-               temperature = seq(-15, 15, 0.001) + round(peptide_tms[i], 3),
-               rel_value = sapply(1/(1 + exp(slope*seq(-15, 15, 0.001))), function(x)
+               peptide = paste(proteoform_name, i, sep = "_"),
+               temperature = seq((41 - rounded_tm), 25, 1) + rounded_tm,
+               rel_value = sapply(1/(1 + exp(slope*seq((41 - rounded_tm), 25, 1))), function(x)
                                   rnorm(n = 1, mean = x, sd = noise_sd)))
         })) %>% 
         filter(temperature %in% temperature_range) %>% 
@@ -34,7 +35,8 @@ simulate_peptide_profiles <- function(protein_name = "test",
 
 simulate_protein_with_2_proteoforms <- function(protein_name = "test",
                                                 peptide_coverage = 15, 
-                                                tm_diff = 1){
+                                                tm_diff = 1,
+                                                melting_point_range = seq(50, 60, 0.1)){
     pf1_pep_cov <- sample(5:(peptide_coverage - 5), 1)
     pf2_pep_cov <- peptide_coverage - pf1_pep_cov
     pf1_tm <- sample(melting_point_range, 1)
@@ -48,7 +50,7 @@ simulate_protein_with_2_proteoforms <- function(protein_name = "test",
     
     pf2_peptide_df <- simulate_peptide_profiles(
         protein_name = protein_name,
-        proteoform_name = paste(protein_name, "1", sep = "_"),
+        proteoform_name = paste(protein_name, "2", sep = "_"),
         pep_cov = pf2_pep_cov, tm = pf2_tm)
     combo_df <- 
         bind_rows(pf1_peptide_df, pf2_peptide_df)
