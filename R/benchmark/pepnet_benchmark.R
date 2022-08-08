@@ -22,7 +22,13 @@ sourceDir <- function(path, ...) {
 }
 sourceDir(path = file.path(here("R/pepnet")))
 
-simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_eset.RDS"))
+#simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_eset.RDS"))
+#simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_02_intra_noise.RDS"))
+#simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_08_intra_noise.RDS"))
+#simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_15_intra_noise.RDS"))
+#simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_20_intra_noise.RDS"))
+simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_15_intra_noise_more_hard_cases.RDS"))
+
 
 BPPARAM <- BiocParallel::MulticoreParam(workers = 4)
 
@@ -37,7 +43,12 @@ sim_similarities <- evaluate_similarity(e_set = simulated_peptides_pep_cov_15,
                                     transform_fun = function (x) 1 / (1 + x),
                                     BPPARAM = BPPARAM)
 
-saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities.RDS"))
+#saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities.RDS"))
+#saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_02_intra_noise.RDS"))
+#saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_08_intra_noise.RDS"))
+#saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_15_intra_noise.RDS"))
+#saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_20_intra_noise.RDS"))
+saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_15_intra_noise_more_hard_cases.RDS"))
 
 # build graph
 graphs <- build_graphs(similarities = sim_similarities,
@@ -48,7 +59,12 @@ graphs <- build_graphs(similarities = sim_similarities,
                        BPPARAM = BPPARAM)
 
 # store
-saveRDS(object = graphs, file = here("R/benchmark/graphs.RDS"))
+#saveRDS(object = graphs, file = here("R/benchmark/graphs.RDS"))
+#saveRDS(object = graphs, file = here("R/benchmark/graphs_02_intra_noise.RDS"))
+#saveRDS(object = graphs, file = here("R/benchmark/graphs_08_intra_noise.RDS"))
+#saveRDS(object = graphs, file = here("R/benchmark/graphs_15_intra_noise.RDS"))
+#saveRDS(object = graphs, file = here("R/benchmark/graphs_20_intra_noise.RDS"))
+saveRDS(object = graphs, file = here("R/benchmark/graphs_15_intra_noise_more_hard_cases.RDS"))
 
 # detect communities
 graphs <- detect_communities(graphs = graphs,
@@ -56,12 +72,17 @@ graphs <- detect_communities(graphs = graphs,
                              BPPARAM = BPPARAM)
 
 # store
-saveRDS(object = graphs, file = here("R/benchmark/graphs_comms.RDS"))
+#saveRDS(object = graphs, file = here("R/benchmark/graphs_comms.RDS"))
+#saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_02_intra_noise.RDS"))
+#saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_08_intra_noise.RDS"))
+#saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_15_intra_noise.RDS"))
+#saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_20_intra_noise.RDS"))
+saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_15_intra_noise_more_hard_cases.RDS"))
 
 # filter graphs for 0 modularity
 graphs_01 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 0) %>% unlist()]
 
-graphs_001 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 0.01) %>% unlist()]
+graphs_001 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 1e-10) %>% unlist()]
 
 eval_df <- tibble(
     protein_name = names(graphs),
