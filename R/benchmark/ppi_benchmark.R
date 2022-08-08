@@ -159,3 +159,69 @@ heusel_sub_inter_ppi_tpca <- runTPCA(
     nSamp = 10^6)
 
 plotPPiRoc(heusel_sub_inter_ppi_tpca, computeAUC = TRUE)
+
+# membrane protein focused analysis
+uniprot_membrane_anno_df <- read_tsv(here("R/benchmark/uniprot_membrane_annotation.tsv")) %>% 
+    filter(!is.na(Transmembrane) | !is.na(Intramembrane)) %>% 
+    mutate(gene_name = sub(" .+", "", `Gene Names`))
+
+# reh membrane protein filtered
+reh_membrane_mat <- reh_protein_table %>% 
+    filter(gene_name %in% uniprot_membrane_anno_df$gene_name) %>% 
+    as.data.frame() %>% 
+    column_to_rownames(var = "gene_name") %>% 
+    as.matrix()
+
+reh_membrane_ori_ppi_tpca <- runTPCA(
+    objList = list(reh_membrane_mat),
+    ppiAnno = ori_et_al_complex_ppis,
+    nSamp = 10^6)
+
+plotPPiRoc(reh_membrane_ori_ppi_tpca, computeAUC = TRUE)
+
+inter_membrane_heusel_mat <- heusel_df %>% 
+    dplyr::select(gene_name = Gene_names, matches("interphase.intensity.mean")) %>% 
+    mutate(gene_name = gsub("\\s.+", "", gene_name)) %>% 
+    filter(gene_name %in% uniprot_membrane_anno_df$gene_name) %>% 
+    filter(!is.na(gene_name) & !duplicated(gene_name)) %>% 
+    as.data.frame() %>% 
+    column_to_rownames(var = "gene_name") %>% 
+    as.matrix()
+
+inter_membrane_heusel_mat_norm <- inter_membrane_heusel_mat / apply(inter_membrane_heusel_mat, 1, max)
+attributes(inter_membrane_heusel_mat_norm)$temperature <- 
+    seq_len(ncol(inter_membrane_heusel_mat_norm))
+
+# select 8 random columns to make data size comparable to deepmeltome TPP
+set.seed(8)
+inter_membrane_heusel_mat_norm_sub <- inter_membrane_heusel_mat_norm[,sort(sample(seq(ncol(inter_membrane_heusel_mat_norm)), 8))]
+
+heusel_membrane_sub_inter_ppi_tpca <- runTPCA(
+    objList = list(inter_membrane_heusel_mat_norm_sub),
+    ppiAnno = ori_et_al_complex_ppis,
+    nSamp = 10^6)
+
+plotPPiRoc(heusel_membrane_sub_inter_ppi_tpca, computeAUC = TRUE)
+
+
+# correlate distances
+heusel_membrane_roc_df <- bind_cols(PPiRocTableAnno(heusel_membrane_sub_inter_ppi_tpca),
+                                    PPiRocTable(heusel_membrane_sub_inter_ppi_tpca) )
+reh_membrane_roc_df <- bind_cols(PPiRocTableAnno(reh_membrane_ori_ppi_tpca),
+                                    PPiRocTable(reh_membrane_ori_ppi_tpca) )
+
+heusel_reh_membrane_roc_df <- left_join(heusel_membrane_roc_df, 
+                                        reh_membrane_roc_df,
+                                        by = "pair") %>% 
+    na.omit()
+
+ggplot(heusel_reh_membrane_roc_df, aes(eucl_dist.x, eucl_dist.y)) +
+    geom_point(alpha = 0.2) +
+    facet_wrap(~annotated.x) +
+    labs(x = "Heusel et al. Euclidean distance",
+         y = "REH Deepmeltome Euclidean distance") +
+    geom_abline(slope = 1, color = "gray", linetype = "dashed") +
+    coord_fixed(xlim = c(0, 15))
+
+
+
