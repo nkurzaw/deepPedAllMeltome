@@ -2,6 +2,7 @@ library(tidyverse)
 library(readxl)
 library(Rtpca)
 library(here)
+library(ggpointdensity)
 
 data("string_ppi_df")
 
@@ -135,6 +136,12 @@ reh_ori_ppi_tpca <- runTPCA(
 
 saveRDS(reh_ori_ppi_tpca, here("R/benchmark/reh_ori_ppi_tpca.RDS"))
 
+reh_ori_ppi_tpca_roc_df <- bind_cols(PPiRocTableAnno(reh_ori_ppi_tpca),
+                                     PPiRocTable(reh_ori_ppi_tpca))
+
+saveRDS(reh_ori_ppi_tpca_roc_df, here("R/benchmark/reh_ori_ppi_tpca_roc_df.RDS"))
+
+
 plotPPiRoc(reh_ori_ppi_tpca, computeAUC = TRUE)
 
 inter_heusel_mat <- heusel_df %>% 
@@ -159,6 +166,52 @@ heusel_sub_inter_ppi_tpca <- runTPCA(
     nSamp = 10^6)
 
 plotPPiRoc(heusel_sub_inter_ppi_tpca, computeAUC = TRUE)
+
+heusel_sub_inter_ori_ppi_tpca_roc_df <- bind_cols(
+    PPiRocTableAnno(heusel_sub_inter_ppi_tpca),
+    PPiRocTable(heusel_sub_inter_ppi_tpca))
+
+saveRDS(heusel_sub_inter_ori_ppi_tpca_roc_df, 
+        here("R/benchmark/heusel_sub_inter_ori_ppi_tpca_roc_df.RDS"))
+
+# per PPI scatterplot
+heusel_reh_roc_df <- left_join(heusel_sub_inter_ori_ppi_tpca_roc_df, 
+                               reh_ori_ppi_tpca_roc_df,
+                               by = "pair") %>% 
+    na.omit()
+
+ggplot(heusel_reh_roc_df, aes(eucl_dist.x, eucl_dist.y)) +
+    geom_point(alpha = 0.2) +
+    facet_wrap(~annotated.x) +
+    labs(x = "Heusel et al. Euclidean distance",
+         y = "REH Deepmeltome Euclidean distance") +
+    geom_abline(slope = 1, color = "gray", linetype = "dashed") +
+    coord_fixed(xlim = c(0, 15))
+
+ggplot(heusel_reh_roc_df %>% filter(annotated.x), aes(eucl_dist.x, eucl_dist.y)) +
+    geom_pointdensity() +
+    #facet_wrap(~annotated.x) +
+    labs(x = "Heusel et al. Euclidean distance",
+         y = "REH Deepmeltome Euclidean distance") +
+    geom_abline(slope = 1, color = "gray", linetype = "dashed") +
+    coord_fixed(xlim = c(0, 15)) +
+    viridis::scale_fill_viridis()
+
+
+ggplot(heusel_reh_roc_df %>% filter(annotated.x), aes(log10(eucl_dist.x), log10(eucl_dist.y))) +
+    geom_point(alpha = 0.2) +
+    geom_point(alpha = 0.2, color = "blue", 
+               data = heusel_reh_roc_df %>% filter(annotated.x) %>% 
+                   filter(grepl("PSM[A,B].+PSM[A,B]", pair))) +
+    geom_point(alpha = 0.2, color = "orange",
+               data = heusel_reh_roc_df %>% filter(annotated.x) %>%
+                   filter(grepl("PSM[C,D].+PSM[C,D]", pair))) +
+    facet_wrap(~annotated.x) +
+    labs(x = "Heusel et al. Euclidean distance, log10",
+         y = "REH Deepmeltome Euclidean distance, log10") +
+    geom_abline(slope = 1, color = "gray", linetype = "dashed") +
+    coord_fixed(ylim = c(-3, 1), xlim = c(-3, 1)) +
+    viridis::scale_fill_viridis()
 
 # membrane protein focused analysis
 uniprot_membrane_anno_df <- read_tsv(here("R/benchmark/uniprot_membrane_annotation.tsv")) %>% 
