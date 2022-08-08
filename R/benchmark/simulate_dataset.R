@@ -173,3 +173,48 @@ simulated_peptides_pep_cov_15 <- convert_simulated_dataset_2_eset(full_simulated
 
 saveRDS(simulated_peptides_pep_cov_15, 
         file = here("R/benchmark/simulated_peptides_pep_cov_15_eset.RDS"))
+
+full_simulated_pep_cov_15_02_intra_noise_df <- readRDS(
+    here("R/benchmark/full_simulated_pep_cov_15_02_intra_noise_df.RDS"))
+
+simulated_peptides_pep_cov_15_02_intra_noise <- 
+    convert_simulated_dataset_2_eset(full_simulated_pep_cov_15_02_intra_noise_df)
+
+saveRDS(simulated_peptides_pep_cov_15_02_intra_noise, 
+        file = here("R/benchmark/simulated_peptides_pep_cov_15_02_intra_noise.RDS"))
+
+full_simulated_pep_cov_15_08_intra_noise_df <- readRDS(
+    here("R/benchmark/full_simulated_pep_cov_15_08_intra_noise_df.RDS"))
+
+simulated_peptides_pep_cov_15_08_intra_noise <- 
+    convert_simulated_dataset_2_eset(full_simulated_pep_cov_15_08_intra_noise_df)
+
+saveRDS(simulated_peptides_pep_cov_15_08_intra_noise, 
+        file = here("R/benchmark/simulated_peptides_pep_cov_15_08_intra_noise.RDS"))
+
+full_simulated_pep_cov_15_15_intra_noise_df <- readRDS(
+    here("R/benchmark/full_simulated_pep_cov_15_15_intra_noise_df.RDS"))
+
+simulated_peptides_pep_cov_15_15_intra_noise <- 
+    convert_simulated_dataset_2_eset(full_simulated_pep_cov_15_15_intra_noise_df)
+
+saveRDS(simulated_peptides_pep_cov_15_15_intra_noise, 
+        file = here("R/benchmark/simulated_peptides_pep_cov_15_15_intra_noise.RDS"))
+
+full_simulated_pep_cov_15_20_intra_noise_df <- readRDS(
+    here("R/benchmark/full_simulated_pep_cov_15_20_intra_noise_df.RDS"))
+
+simulated_peptides_pep_cov_15_20_intra_noise <- 
+    convert_simulated_dataset_2_eset(full_simulated_pep_cov_15_20_intra_noise_df)
+
+saveRDS(simulated_peptides_pep_cov_15_20_intra_noise, 
+        file = here("R/benchmark/simulated_peptides_pep_cov_15_20_intra_noise.RDS"))
+
+full_simulated_pep_cov_15_15_intra_noise_more_hard_cases_df <- readRDS(
+    here("R/benchmark/full_simulated_pep_cov_15_15_intra_noise_more_hard_cases_df.RDS"))
+
+simulated_peptides_pep_cov_15_15_intra_noise_more_hard_cases <- 
+    convert_simulated_dataset_2_eset(full_simulated_pep_cov_15_15_intra_noise_more_hard_cases_df)
+
+saveRDS(simulated_peptides_pep_cov_15_15_intra_noise_more_hard_cases, 
+        file = here("R/benchmark/simulated_peptides_pep_cov_15_15_intra_noise_more_hard_cases.RDS"))
