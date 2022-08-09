@@ -210,6 +210,12 @@ simulated_peptides_pep_cov_15_20_intra_noise <-
 saveRDS(simulated_peptides_pep_cov_15_20_intra_noise, 
         file = here("R/benchmark/simulated_peptides_pep_cov_15_20_intra_noise.RDS"))
 
+# export for COPF analyiss
+export_df <- full_simulated_pep_cov_15_20_intra_noise_df %>% 
+    dplyr::select(-proteoform_name) %>% 
+    unite("temperature_sample", c("temperature", "sample"))
+write_csv(export_df, file = here("R/benchmark/simulated_pep_cov_15_20_intra_noise.csv"))
+
 full_simulated_pep_cov_15_15_intra_noise_more_hard_cases_df <- readRDS(
     here("R/benchmark/full_simulated_pep_cov_15_15_intra_noise_more_hard_cases_df.RDS"))
 

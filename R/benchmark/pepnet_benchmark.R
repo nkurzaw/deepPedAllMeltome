@@ -87,7 +87,7 @@ saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_15_intra_noise_mo
 # filter graphs for 0 modularity
 graphs_01 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 0) %>% unlist()]
 
-graphs_001 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 0.35e-14) %>% unlist()]
+graphs_001 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 1e-14) %>% unlist()]
 
 eval_df <- tibble(
     protein_name = names(graphs),
@@ -104,9 +104,13 @@ pepnet_roc_df <- ggroc(roc_obj)$data %>%
     mutate(method = "pepnet")
 
 # COPF benchmark
-copf_scores_df <- read_csv(here("R/benchmark/cc_profiler_proteoform_scores.csv")) %>% 
+copf_scores_df <- read_csv(here("R/benchmark/cc_profiler_proteoform_scores_20_intra_noise.csv")) %>% 
     within(proteoform_score[is.na(proteoform_score)] <- 0) %>% 
     mutate(tp = as.numeric(grepl("tp", protein_id)))
+
+# copf_scores_df <- read_csv(here("R/benchmark/cc_profiler_proteoform_scores.csv")) %>% 
+#     within(proteoform_score[is.na(proteoform_score)] <- 0) %>% 
+#     mutate(tp = as.numeric(grepl("tp", protein_id)))
 
 roc_obj <- roc(copf_scores_df$tp ~ copf_scores_df$proteoform_score)
 auc(roc_obj)
@@ -119,6 +123,6 @@ combo_roc_df <- bind_rows(pepnet_roc_df, copf_roc_df)
 
 ggplot(combo_roc_df, aes(1-specificity, sensitivity, color = method)) +
     geom_line() +
-    geom_abline(slope = 1, linetype = "dashed") +
+    geom_abline(slope = 1, linetype = "dashed", color="gray") +
     theme_bw()
 
