@@ -29,13 +29,14 @@ sourceDir(path = file.path(here("R/pepnet")))
 #simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_20_intra_noise.RDS"))
 #simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_15_intra_noise_more_hard_cases.RDS"))
 simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_15_intra_noise_more_intermediate_hard_cases.RDS"))
+simulated_peptides_pep_cov_50 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_50_20_intra_noise.RDS"))
 
 
 
 BPPARAM <- BiocParallel::MulticoreParam(workers = 4)
 
 # similarity analysis (euclidean distance)
-sim_similarities <- evaluate_similarity(e_set = simulated_peptides_pep_cov_15,
+sim_similarities <- evaluate_similarity(e_set = simulated_peptides_pep_cov_50, #simulated_peptides_pep_cov_15,
                                     filter_params = list(min_num_peptides_per_ioi = 10,
                                                          max_num_peptides_per_ioi = Inf,
                                                          min_peptides_per_sample = 2,
@@ -51,11 +52,13 @@ sim_similarities <- evaluate_similarity(e_set = simulated_peptides_pep_cov_15,
 #saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_15_intra_noise.RDS"))
 #saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_20_intra_noise.RDS"))
 #saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_15_intra_noise_more_hard_cases.RDS"))
-saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_15_intra_noise_more_intermediate_hard_cases.RDS"))
+#saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_15_intra_noise_more_intermediate_hard_cases.RDS"))
+saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_pep_cov_50_20_intra_noise.RDS"))
+
 
 # build graph
 graphs <- build_graphs(similarities = sim_similarities,
-                       e_set = simulated_peptides_pep_cov_15,
+                       e_set = simulated_peptides_pep_cov_50,
                        filter_params = list(lower_similarity_cutoff = 0,
                                             lower_n_cutoff = 20,
                                             upper_q_cutoff = Inf),
@@ -68,7 +71,8 @@ graphs <- build_graphs(similarities = sim_similarities,
 #saveRDS(object = graphs, file = here("R/benchmark/graphs_15_intra_noise.RDS"))
 #saveRDS(object = graphs, file = here("R/benchmark/graphs_20_intra_noise.RDS"))
 #saveRDS(object = graphs, file = here("R/benchmark/graphs_15_intra_noise_more_hard_cases.RDS"))
-saveRDS(object = graphs, file = here("R/benchmark/graphs_15_intra_noise_more_intermediate_hard_cases.RDS"))
+#saveRDS(object = graphs, file = here("R/benchmark/graphs_15_intra_noise_more_intermediate_hard_cases.RDS"))
+saveRDS(object = graphs, file = here("R/benchmark/graphs_pep_cov_50_20_intra_noise.RDS"))
 
 # detect communities
 graphs <- detect_communities(graphs = graphs,
@@ -82,12 +86,13 @@ graphs <- detect_communities(graphs = graphs,
 #saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_15_intra_noise.RDS"))
 #saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_20_intra_noise.RDS"))
 #saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_15_intra_noise_more_hard_cases.RDS"))
-saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_15_intra_noise_more_intermediate_hard_cases.RDS"))
+#saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_15_intra_noise_more_intermediate_hard_cases.RDS"))
+saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_pep_cov_50_20_intra_noise.RDS"))
 
 # filter graphs for 0 modularity
 graphs_01 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 0) %>% unlist()]
 
-graphs_001 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 1e-14) %>% unlist()]
+graphs_001 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 1e-13) %>% unlist()]
 
 eval_df <- tibble(
     protein_name = names(graphs),
@@ -104,9 +109,14 @@ pepnet_roc_df <- ggroc(roc_obj)$data %>%
     mutate(method = "pepnet")
 
 # COPF benchmark
-copf_scores_df <- read_csv(here("R/benchmark/cc_profiler_proteoform_scores_20_intra_noise.csv")) %>% 
+
+copf_scores_df <- read_csv(here("R/benchmark/cc_profiler_proteoform_scores_pep_cov_50.csv")) %>% 
     within(proteoform_score[is.na(proteoform_score)] <- 0) %>% 
     mutate(tp = as.numeric(grepl("tp", protein_id)))
+
+# copf_scores_df <- read_csv(here("R/benchmark/cc_profiler_proteoform_scores_20_intra_noise.csv")) %>% 
+#     within(proteoform_score[is.na(proteoform_score)] <- 0) %>% 
+#     mutate(tp = as.numeric(grepl("tp", protein_id)))
 
 # copf_scores_df <- read_csv(here("R/benchmark/cc_profiler_proteoform_scores.csv")) %>% 
 #     within(proteoform_score[is.na(proteoform_score)] <- 0) %>% 

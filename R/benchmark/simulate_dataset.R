@@ -8,7 +8,7 @@ library(Biobase)
 simulate_peptide_profiles <- function(protein_name = "test",
                                       proteoform_name = "test_0",
                                       pep_cov = 10, tm = 50, 
-                                      within_pf_noise = 0.1, 
+                                      within_pf_noise = 2, 
                                       noise_sd = 0.1,
                                       slope = 0.75,
                                       temperature_range = 
@@ -239,3 +239,23 @@ export_df <- full_simulated_pep_cov_15_15_intra_noise_more_intermediate_hard_cas
     dplyr::select(-proteoform_name) %>% 
     unite("temperature_sample", c("temperature", "sample"))
 write_csv(export_df, file = here("R/benchmark/simulated_pep_cov_15_15_intra_noise_more_intermediate_hard_cases_spread_df.csv"))
+
+# simulate full dataset with 50 peptides per protein
+set.seed(123)
+full_simulated_pep_cov_50_20_intra_noise_df <- simulate_dataset(peptide_coverage = 50)
+
+full_simulated_pep_cov_50_20_intra_noise_df <- readRDS(
+    here("R/benchmark/full_simulated_pep_cov_50_20_intra_noise_df.RDS"))
+
+simulated_peptides_pep_cov_50_20_intra_noise <- 
+    convert_simulated_dataset_2_eset(full_simulated_pep_cov_50_20_intra_noise_df)
+
+saveRDS(simulated_peptides_pep_cov_50_20_intra_noise, 
+        file = here("R/benchmark/simulated_peptides_pep_cov_50_20_intra_noise.RDS"))
+
+# export for COPF analyiss
+export_df <- full_simulated_pep_cov_50_20_intra_noise_df %>% 
+    dplyr::select(-proteoform_name) %>% 
+    unite("temperature_sample", c("temperature", "sample"))
+write_csv(export_df, file = here("R/benchmark/simulated_pep_cov_50_20_intra_noise_spread_df.csv"))
+
