@@ -22,13 +22,8 @@ sourceDir <- function(path, ...) {
 }
 sourceDir(path = file.path(here("R/pepnet")))
 
-#simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_eset.RDS"))
-#simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_02_intra_noise.RDS"))
-#simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_08_intra_noise.RDS"))
-#simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_15_intra_noise.RDS"))
+
 #simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_20_intra_noise.RDS"))
-#simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_15_intra_noise_more_hard_cases.RDS"))
-simulated_peptides_pep_cov_15 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_15_15_intra_noise_more_intermediate_hard_cases.RDS"))
 simulated_peptides_pep_cov_50 <- readRDS(here("R/benchmark/simulated_peptides_pep_cov_50_20_intra_noise.RDS"))
 
 
@@ -46,13 +41,8 @@ sim_similarities <- evaluate_similarity(e_set = simulated_peptides_pep_cov_50, #
                                     transform_fun = function (x) 1 / (1 + x),
                                     BPPARAM = BPPARAM)
 
-#saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities.RDS"))
-#saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_02_intra_noise.RDS"))
-#saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_08_intra_noise.RDS"))
-#saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_15_intra_noise.RDS"))
+
 #saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_20_intra_noise.RDS"))
-#saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_15_intra_noise_more_hard_cases.RDS"))
-#saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_15_intra_noise_more_intermediate_hard_cases.RDS"))
 saveRDS(object = sim_similarities, file = here("R/benchmark/sim_similarities_pep_cov_50_20_intra_noise.RDS"))
 
 
@@ -65,13 +55,8 @@ graphs <- build_graphs(similarities = sim_similarities,
                        BPPARAM = BPPARAM)
 
 # store
-#saveRDS(object = graphs, file = here("R/benchmark/graphs.RDS"))
-#saveRDS(object = graphs, file = here("R/benchmark/graphs_02_intra_noise.RDS"))
-#saveRDS(object = graphs, file = here("R/benchmark/graphs_08_intra_noise.RDS"))
-#saveRDS(object = graphs, file = here("R/benchmark/graphs_15_intra_noise.RDS"))
+
 #saveRDS(object = graphs, file = here("R/benchmark/graphs_20_intra_noise.RDS"))
-#saveRDS(object = graphs, file = here("R/benchmark/graphs_15_intra_noise_more_hard_cases.RDS"))
-#saveRDS(object = graphs, file = here("R/benchmark/graphs_15_intra_noise_more_intermediate_hard_cases.RDS"))
 saveRDS(object = graphs, file = here("R/benchmark/graphs_pep_cov_50_20_intra_noise.RDS"))
 
 # detect communities
@@ -80,13 +65,7 @@ graphs <- detect_communities(graphs = graphs,
                              BPPARAM = BPPARAM)
 
 # store
-#saveRDS(object = graphs, file = here("R/benchmark/graphs_comms.RDS"))
-#saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_02_intra_noise.RDS"))
-#saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_08_intra_noise.RDS"))
-#saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_15_intra_noise.RDS"))
 #saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_20_intra_noise.RDS"))
-#saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_15_intra_noise_more_hard_cases.RDS"))
-#saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_15_intra_noise_more_intermediate_hard_cases.RDS"))
 saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_pep_cov_50_20_intra_noise.RDS"))
 
 # filter graphs for 0 modularity
@@ -109,18 +88,13 @@ pepnet_roc_df <- ggroc(roc_obj)$data %>%
     mutate(method = "pepnet")
 
 # COPF benchmark
+# copf_scores_df <- read_csv(here("R/benchmark/cc_profiler_proteoform_scores_20_intra_noise.csv")) %>%
+#     within(proteoform_score[is.na(proteoform_score)] <- 0) %>%
+#     mutate(tp = as.numeric(grepl("tp", protein_id)))
 
 copf_scores_df <- read_csv(here("R/benchmark/cc_profiler_proteoform_scores_pep_cov_50.csv")) %>% 
     within(proteoform_score[is.na(proteoform_score)] <- 0) %>% 
     mutate(tp = as.numeric(grepl("tp", protein_id)))
-
-# copf_scores_df <- read_csv(here("R/benchmark/cc_profiler_proteoform_scores_20_intra_noise.csv")) %>% 
-#     within(proteoform_score[is.na(proteoform_score)] <- 0) %>% 
-#     mutate(tp = as.numeric(grepl("tp", protein_id)))
-
-# copf_scores_df <- read_csv(here("R/benchmark/cc_profiler_proteoform_scores.csv")) %>% 
-#     within(proteoform_score[is.na(proteoform_score)] <- 0) %>% 
-#     mutate(tp = as.numeric(grepl("tp", protein_id)))
 
 roc_obj <- roc(copf_scores_df$tp ~ copf_scores_df$proteoform_score)
 auc(roc_obj)
@@ -136,3 +110,47 @@ ggplot(combo_roc_df, aes(1-specificity, sensitivity, color = method)) +
     geom_abline(slope = 1, linetype = "dashed", color="gray") +
     theme_bw()
 
+## FDR-TPR plot
+enforce_monotonicity <- function(x){
+    length_x <- length(x)
+    x_ = x
+    for (i in seq(length_x)){
+        if(i > 1){
+            x_[i] = ifelse(x_[i] >= x_[i-1], x_[i], x_[i-1])
+        }
+    }
+    return(x_)
+}
+
+pepnet_fdr_tpr_df <- eval_df %>% 
+    mutate(tp_cumsum = cumsum(tp),
+           fp_cumsum = cumsum(abs(tp-1)),
+           rank = rank(desc(modularity))) %>% 
+    mutate(tpr = tp_cumsum / max(tp_cumsum),
+           fdr = fp_cumsum / rank) %>% 
+    mutate(fdr = enforce_monotonicity(fdr)) %>% 
+    mutate(method = "pepnet")
+
+
+ggplot(pepnet_fdr_tpr_df, aes(fdr, tpr)) +
+    geom_path() +
+    geom_point(data = tail(filter(pepnet_fdr_tpr_df, modularity > 1e-13), 1))
+
+copf_fdr_tpr_df <- copf_scores_df %>% 
+    arrange(desc(proteoform_score)) %>% 
+    mutate(tp_cumsum = cumsum(tp),
+           fp_cumsum = cumsum(abs(tp-1)),
+           rank = rank(desc(proteoform_score))) %>% 
+    mutate(tpr = tp_cumsum / max(tp_cumsum),
+           fdr = fp_cumsum / rank) %>% 
+    mutate(fdr = enforce_monotonicity(fdr)) %>% 
+    mutate(method = "COPF")
+
+ggplot(copf_fdr_tpr_df, aes(fdr, tpr)) +
+    geom_path() #+
+    #geom_point(data = tail(filter(pepnet_fdr_tpr_df, modularity > 1e-13), 1))
+
+combo_fdr_tpr_df <- bind_rows(pepnet_fdr_tpr_df, copf_fdr_tpr_df)
+
+ggplot(combo_fdr_tpr_df, aes(fdr, tpr)) +
+    geom_path(aes(color = method), alpha = 0.5, size = 1)
