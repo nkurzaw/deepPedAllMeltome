@@ -14,8 +14,11 @@ library(here)
 
 # workaround to install leiden on tamarindo
 # library(reticulate)
+# py_install("numpy")
 # py_install("python-igraph")
 # py_install("leidenalg", forge = TRUE)
+# 
+
 
 # seems that the leiden package only works from the github repo
 # devtools::install_github("TomKellyGenetics/leiden", ref = "master")
@@ -61,7 +64,7 @@ peptides_raw <- psms_to_peptides(psms = psms,
                                  sample_meta_file = here("meta", "meltome_sample_meta.txt"),
                                  sample_id_col = "sample_id")
 
-saveRDS(object = peptides_raw, file = file.path(output_folder, "peptides_raw.RDS"))
+saveRDS(object = peptides_raw, file = file.path(output_folder, "peptides_raw2.RDS"))
 
 # peptides_raw <- readRDS(file = file.path(output_folder, "peptides_raw.RDS"))
 
@@ -85,7 +88,7 @@ fData(peptides) <- peptides %>%
 pData(peptides)$sample_name_temp <- paste0(pData(peptides)$sample_name, "_", pData(peptides)$temperature)
 
 # store
-saveRDS(object = peptides, file = file.path(output_folder, "peptides.RDS"))
+saveRDS(object = peptides, file = file.path(output_folder, "peptides2.RDS"))
 
 # peptides <- readRDS(file = file.path(output_folder, "peptides.RDS"))
 
@@ -103,7 +106,7 @@ similarities <- evaluate_similarity(e_set = peptides,
                                     transform_fun = function (x) 1 / (1 + x),
                                     BPPARAM = BPPARAM)
 
-saveRDS(object = similarities, file = file.path(output_folder, "similarities.RDS"))
+saveRDS(object = similarities, file = file.path(output_folder, "similarities2.RDS"))
 
 # similarities <- readRDS(file = file.path(output_folder, "similarities.RDS"))
 
@@ -132,7 +135,9 @@ saveRDS(object = graphs, file = file.path(output_folder, "graphs_comms.RDS"))
 ############### AGGREGATION ###############
 
 # filter graphs for 0 modularity
-graphs_01 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 0) %>% unlist()]
+graphs_0 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 0) %>% unlist()]
+graphs_01 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 1e-13) %>% unlist()]
+
 
 proteoforms_intensities <- aggregate_peptides_to_proteoforms(e_set = peptides_raw,
                                                              graphs = graphs_01,
@@ -142,21 +147,22 @@ proteoforms_intensities <- aggregate_peptides_to_proteoforms(e_set = peptides_ra
 # filter out small number of peptides and ambiguous only proteoforms
 proteoforms_intensities_filtered <- proteoforms_intensities %>%
   .[fData(.)$ambiguous_peptides_only == FALSE, ] %>%
-  .[fData(.)$num_peptides > 2] %>%
+  .[fData(.)$num_peptides > 4] %>%
   .[fData(.)$ambiguity_ratio < 0.5]
 
 # VSN normalisation
 proteoforms_vsn_norm <- vsn_normalize_by_temperature(e_set = proteoforms_intensities_filtered)
 
-# ratios to lowest temperature
-proteoforms <- build_ratios_to_lowest_temperature(e_set = proteoforms_vsn_norm, 
-                                                  sample_col = "sample_name")
+# # ratios to lowest temperature  
+# proteoforms <- build_ratios_to_lowest_temperature(e_set = proteoforms_vsn_norm, 
+#                                                   sample_col = "sample_name")
 
-saveRDS(object = proteoforms, file = file.path(output_folder, "proteoforms_narrow_range_focused.RDS"))
+#saveRDS(object = proteoforms, file = file.path(output_folder, "proteoforms_narrow_range_focused.RDS"))
+saveRDS(object = proteoforms_vsn_norm, file = file.path(output_folder, "proteoforms_narrow_range_focused_q>1e-13.RDS"))
 
 # proteoforms <- readRDS(file = file.path(output_folder, "proteoforms.RDS"))
 
-iois <- proteoforms %>%
+iois <- proteoforms_vsn_norm %>%
   fData() %>%
   filter(membership != 0) %>%
   .$ioi %>%
@@ -238,7 +244,7 @@ dev.off()
 
 ############### QC PLOTS ###############
 
-pdf(file = file.path(output_folder, "qc_plots.pdf"))
+pdf(file = file.path(output_folder, "qc_plots_q>1e-13.pdf"))
 
 plot_num_proteoforms_per_id(graphs = graphs, BPPARAM = BPPARAM)
 
