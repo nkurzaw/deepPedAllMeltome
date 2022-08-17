@@ -68,7 +68,8 @@ aggregate_peptides_to_proteoforms <- function (e_set,
   data_aggregated <- data_memberships %>%
     dplyr::select(ioi, membership, proteoform_id, matches(quant_identifier), matches(num_psms_regex), matches(ms1_area_regex)) %>%
     group_by(ioi, membership, proteoform_id) %>%
-    group_by(num_peptides = n(), .add = TRUE) %>%
+    mutate(num_peptides = n()) %>% 
+    group_by(ioi, membership, proteoform_id, num_peptides) %>%
     summarise(across(everything(), list(aggregate = function (x) aggregation_fun(x, na.rm = TRUE),
                                         sd = function (x) sd(x, na.rm = TRUE))),
               .groups = "drop") %>%
