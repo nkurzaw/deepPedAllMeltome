@@ -35,12 +35,14 @@ import_proteins_from_nf <- function (file,
     quan_data <- data %>%
         dplyr::select(matches(quan_regex)) %>%
         as.matrix()
+    rownames(quan_data) <- data$id
     colnames(quan_data) <- sub("X__POOL_.+Set", "Set",  colnames(quan_data))
         
     
     # split off feature data
     feature_data <- data %>%
         dplyr::select(-matches(quan_regex))
+    rownames(feature_data) <- feature_data$id
     
     # load sample meta file
     pheno_data <- read_tsv(file = sample_meta_file) %>%
