@@ -38,7 +38,7 @@ compute_Fstat_PPI_coaggregation_differences <- function(
                      })) %>% 
         group_by(pair) %>% 
         filter(n() >= min_n) %>% 
-        summarize(min_value = min(value, na.rm = TRUE),
+        dplyr::summarize(min_value = min(value, na.rm = TRUE),
                   max_value = max(value, na.rm = TRUE),
                   .groups = "keep") %>% 
         ungroup %>% 
@@ -89,7 +89,7 @@ compute_robust_Fstat_PPI_coaggregation_differences <- function(
                  })) %>% 
         group_by(pair) %>% 
         filter(n() >= min_n) %>% 
-        summarize(min_value = sort(value)[2],
+        dplyr::summarize(min_value = sort(value)[2],
                   max_value = sort(value)[length(value) - 1],
                   .groups = "keep") %>% 
         ungroup %>% 
