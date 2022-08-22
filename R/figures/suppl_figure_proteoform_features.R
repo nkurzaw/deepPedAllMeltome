@@ -35,6 +35,16 @@ proteoform_fdata_gene_level <- proteoform_fdata %>%
               .groups = "drop") %>% 
     within(num_proteoforms[num_proteoforms == 0] <- 1)
 
+functional_phosphosites <- read_xlsx(here("data/41587_2019_344_MOESM5_ESM.xlsx")) %>% 
+    group_by(uniprot) %>% 
+    summarize(phosphosite_count = n(),
+              max_functional_score = max(functional_score),
+              .groups = "drop")
+
+disorder_predictions <- read_tsv(here("data/all_uniprot_instrinsically_disordered_annotation_swissprot_march21_min_5_aas_full.txt")) %>% 
+    mutate(rank = as.numeric(rank)) %>% 
+    dplyr::select(uniprot_id = protein, fraction_disordered = rank)
+
 uniprot_features <- read_tsv(here("data/uniprot_human_proteome_features.tsv")) %>% 
     mutate(gene_name = sub(" .+", "", `Gene Names`),
            known_isoforms = sub(";.+", "", sub(".+Named isoforms=", "", `Alternative products (isoforms)`)),
@@ -49,6 +59,8 @@ uniprot_features <- read_tsv(here("data/uniprot_human_proteome_features.tsv")) %
     within(known_isoforms[known_isoforms == "ALTERNATIVE PRODUCTS:"] <- 1) %>% 
     dplyr::select(uniprot_id = Entry, gene_name, length = Length, known_isoforms, 
                   cc_loc, small_molecule_binding) %>% 
+    left_join(functional_phosphosites, by = c("uniprot_id" = "uniprot")) %>% 
+    left_join(disorder_predictions, by = "uniprot_id") %>% 
     group_by(gene_name) %>% 
     summarize(length = max(length),
               known_isoforms = max(as.numeric(known_isoforms)),
@@ -59,6 +71,9 @@ uniprot_features <- read_tsv(here("data/uniprot_human_proteome_features.tsv")) %
                                  any(grepl("Cytoplasm", cc_loc)) ~ "Cytoplasm",
                                  TRUE ~ "Other"),
               small_molecule_binding = any(small_molecule_binding),
+              phosphosite_count = sum(phosphosite_count),
+              max_functional_score = max(max_functional_score),
+              fraction_disorder = max(fraction_disordered, na.rm = TRUE),
               .groups = "drop")
 
 halflife_df <- read_xlsx(here("data/41467_2018_3106_MOESM5_ESM.xlsx")) %>% 
@@ -136,4 +151,27 @@ proteoform_fdata_gene_level %>%
     ggplot(aes(cc_loc, num_proteoforms)) +
     geom_violin() +
     geom_boxplot(width = 0.15, outlier.colour = NA)
+
+# phosphosite count
+proteoform_fdata_gene_level  %>% 
+    filter(!is.na(phosphosite_count)) %>% 
+    ggplot(aes(as.factor(num_proteoforms), log2(phosphosite_count))) +
+    geom_violin() +
+    geom_boxplot()
+
+# correct for length
+proteoform_fdata_gene_level  %>% 
+    filter(!is.na(phosphosite_count)) %>% 
+    ggplot(aes(as.factor(num_proteoforms), log2(phosphosite_count/length))) +
+    geom_violin() +
+    geom_boxplot(width = 0.15)
+
+# fraction disorder
+proteoform_fdata_gene_level  %>% 
+    filter(!is.na(fraction_disorder)) %>% 
+    ggplot(aes(as.factor(num_proteoforms), fraction_disorder)) +
+    geom_violin() +
+    geom_boxplot(width = 0.15)
+
+
 
