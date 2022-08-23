@@ -57,7 +57,7 @@ sec_roc <-
 
 plot_grid(deepmeltome_roc, sec_roc, labels = letters[1:2], nrow = 1)
 ggsave(filename = here("R/figures/suppl_fig_ppi_benchmark.pdf"), 
-       width = 21, height = 8, units = "cm")
+       width = 21, height = 10, units = "cm")
 
 # load pre-run proteoform detection datasets
 
@@ -166,7 +166,7 @@ plot_grid(
 
 
 ggsave(filename = here("R/figures/suppl_fig_pepnet_benchmark.pdf"), 
-       width = 21, height = 8, units = "cm")
+       width = 21, height = 10, units = "cm")
 
 # compute FDR, sensitivity for different proteoforms
 ## 15 peptides
