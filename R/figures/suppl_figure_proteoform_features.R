@@ -331,7 +331,7 @@ disorder_detected_proteoforms <- proteoform_fdata_gene_level  %>%
     geom_hline(aes(yintercept = median(fraction_disorder)), 
                color = "black", alpha = 0.25, size = 2) +
     labs(x = "Number of known isoforms",
-         y = "Fraction of disordered\nin protein sequence") +
+         y = "Fraction of disorder\nin protein sequence") +
     theme_paper
 
 # fraction disorder known isoforms
@@ -345,7 +345,7 @@ disorder_known_isoforms <- proteoform_fdata_gene_level  %>%
     geom_hline(aes(yintercept = median(fraction_disorder)), 
                color = "black", alpha = 0.25, size = 2) +
     labs(x = "Binned number of known isoforms",
-         y = "Fraction of disordered\nin protein sequence") +
+         y = "Fraction of disorder\nin protein sequence") +
     #ggtitle("Number of phosphosites normalized by protein length") +
     theme_paper
 
@@ -402,7 +402,7 @@ plot_grid(
     plot_grid(half_life_detected_proteoforms, half_life_known_isoforms, 
               disorder_detected_proteoforms, disorder_known_isoforms,
               nrow = 1, labels = letters[17:20]),
-    nrow = 5
+    nrow = 5, rel_heights = c(1, 0.8, 0.8, 0.8, 0.8)
 )
 ggsave(filename = here("R/figures/suppl_fig_proteoform_features.pdf"), 
-       width = 21, height = 35, units = "cm")
+       width = 21, height = 31, units = "cm")
