@@ -38,20 +38,20 @@ proteoform_fdata_gene_level <- proteoform_fdata %>%
                      P30_OHKUBO_abundance_log2 = log2(sum(`__quant_Set2_tmt16plex_134N_sd`, na.rm = TRUE)),
                      KASUMI_9_abundance_log2 = log2(sum(`__quant_Set3_tmt16plex_126_sd`, na.rm = TRUE)),
                      SEM_abundance_log2 = log2(sum(`__quant_Set3_tmt16plex_134N_sd`, na.rm = TRUE)),
-                     RCH_ACV_abundance_log2 = log2(sum(`__quant_Set4_tmt16plex_126_sd`, na.rm = TRUE)),
-                     LC4_1_abundance_log2 = log2(sum(`__quant_Set4_tmt16plex_134N_sd`, na.rm = TRUE)),
-                     RCH_ACV_abundance_log2 = log2(sum(`__quant_Set5_tmt16plex_126_sd`, na.rm = TRUE)),
-                     LC4_1_abundance_log2 = log2(sum(`__quant_Set5_tmt16plex_134N_sd`, na.rm = TRUE)),
-                     RCH_ACV_abundance_log2 = log2(sum(`__quant_Set6_tmt16plex_126_sd`, na.rm = TRUE)),
-                     LC4_1_abundance_log2 = log2(sum(`__quant_Set6_tmt16plex_134N_sd`, na.rm = TRUE)),
-                     RCH_ACV_abundance_log2 = log2(sum(`__quant_Set7_tmt16plex_126_sd`, na.rm = TRUE)),
-                     LC4_1_abundance_log2 = log2(sum(`__quant_Set7_tmt16plex_134N_sd`, na.rm = TRUE)),
-                     RCH_ACV_abundance_log2 = log2(sum(`__quant_Set8_tmt16plex_126_sd`, na.rm = TRUE)),
-                     LC4_1_abundance_log2 = log2(sum(`__quant_Set8_tmt16plex_134N_sd`, na.rm = TRUE)),
-                     RCH_ACV_abundance_log2 = log2(sum(`__quant_Set9_tmt16plex_126_sd`, na.rm = TRUE)),
-                     LC4_1_abundance_log2 = log2(sum(`__quant_Set9_tmt16plex_134N_sd`, na.rm = TRUE)),
-                     RCH_ACV_abundance_log2 = log2(sum(`__quant_Set1_tmt16plex_126_sd`, na.rm = TRUE)),
-                     LC4_1_abundance_log2 = log2(sum(`__quant_Set1_tmt16plex_134N_sd`, na.rm = TRUE)),
+                     COG_355_abundance_log2 = log2(sum(`__quant_Set4_tmt16plex_126_sd`, na.rm = TRUE)),
+                     X697_abundance_log2 = log2(sum(`__quant_Set4_tmt16plex_134N_sd`, na.rm = TRUE)),
+                     KASUMI_2_abundance_log2 = log2(sum(`__quant_Set5_tmt16plex_126_sd`, na.rm = TRUE)),
+                     ALL_PO_abundance_log2 = log2(sum(`__quant_Set5_tmt16plex_134N_sd`, na.rm = TRUE)),
+                     SUP_15_abundance_log2 = log2(sum(`__quant_Set6_tmt16plex_126_sd`, na.rm = TRUE)),
+                     MHH_CALL_3_abundance_log2 = log2(sum(`__quant_Set6_tmt16plex_134N_sd`, na.rm = TRUE)),
+                     TMD5_abundance_log2 = log2(sum(`__quant_Set7_tmt16plex_126_sd`, na.rm = TRUE)),
+                     KOPN_8_abundance_log2 = log2(sum(`__quant_Set7_tmt16plex_134N_sd`, na.rm = TRUE)),
+                     NALL_1_abundance_log2 = log2(sum(`__quant_Set8_tmt16plex_126_sd`, na.rm = TRUE)),
+                     COG_319_abundance_log2 = log2(sum(`__quant_Set8_tmt16plex_134N_sd`, na.rm = TRUE)),
+                     MHH_CALL_2_abundance_log2 = log2(sum(`__quant_Set9_tmt16plex_126_sd`, na.rm = TRUE)),
+                     COG_394_abundance_log2 = log2(sum(`__quant_Set9_tmt16plex_134N_sd`, na.rm = TRUE)),
+                     HAL_01_abundance_log2 = log2(sum(`__quant_Set10_tmt16plex_126_sd`, na.rm = TRUE)),
+                     MHH_CALL_4_abundance_log2 = log2(sum(`__quant_Set10_tmt16plex_134N_sd`, na.rm = TRUE)),
                      .groups = "drop") %>% 
     within(num_proteoforms[num_proteoforms == 0] <- 1)
 
@@ -117,7 +117,7 @@ proteoform_fdata_gene_level %>%
     facet_wrap(~known_isoforms_binned) +
     labs(x = "Number of detected proteoforms",
          y = "Count") +
-    ggtitle("Number of detected proteoforms per gene stratified by number of known isoforms") +
+    #ggtitle("Number of detected proteoforms per gene stratified by number of known isoforms") +
     theme_paper
 
 # plot number of found proteoforms stratified by cellular location
@@ -128,7 +128,7 @@ proteoform_fdata_gene_level %>%
     facet_wrap(~cc_loc) +
     labs(x = "Number of detected proteoforms",
          y = "Count") +
-    ggtitle("Number of detected proteoforms per gene stratified by cellular location") +
+    #ggtitle("Number of detected proteoforms per gene stratified by cellular location") +
     theme_paper
 
 # plot number of found proteoforms stratified by cellular location
@@ -140,7 +140,7 @@ proteoform_fdata_gene_level %>%
     facet_wrap(~cc_loc) +
     labs(x = "Number of known isoforms",
          y = "Count") +
-    ggtitle("Number of known isoforms per gene stratified by cellular location") +
+    #ggtitle("Number of known isoforms per gene stratified by cellular location") +
     theme_paper
 
 # plot number of found proteoforms vs. turnover in B-cells
@@ -151,7 +151,7 @@ proteoform_fdata_gene_level %>%
     geom_boxplot(width = 0.15, outlier.colour = NA) +
     labs(x = "Number of detected proteoforms",
          y = "log10(half life)") +
-    ggtitle("Half lives of proteins with different numbers of detected proteoforms") +
+    #ggtitle("Half lives of proteins with different numbers of detected proteoforms") +
     theme_paper
 
 proteoform_fdata_gene_level %>% 
@@ -163,7 +163,7 @@ proteoform_fdata_gene_level %>%
     geom_boxplot(width = 0.15, outlier.colour = NA) +
     labs(x = "Bins of numbers of known isoforms per gene",
          y = "log10(half life)") +
-    ggtitle("Half lives of proteins with different numbers of known isoforms") +
+    #ggtitle("Half lives of proteins with different numbers of known isoforms") +
     theme_paper
 
 # plot number of found proteoforms vs. protein length
@@ -173,8 +173,8 @@ proteoform_fdata_gene_level %>%
     geom_violin(fill = "gray", alpha = 0.5) +
     geom_boxplot(width = 0.15, outlier.colour = NA) +
     labs(x = "Number of detected proteoforms",
-         y = "log2(max. protein length per gene)") +
-    ggtitle("Max. lengths of proteins with different numbers of detected proteoforms") +
+         y = "log2(max. protein length (AAs) per gene)") +
+    #ggtitle("Max. lengths of proteins with different numbers of detected proteoforms") +
     theme_paper
 
 proteoform_fdata_gene_level %>% 
@@ -185,8 +185,8 @@ proteoform_fdata_gene_level %>%
     geom_violin(fill = "gray", alpha = 0.5) +
     geom_boxplot(width = 0.15, outlier.colour = NA) +
     labs(x = "Number of known isoforms per protein",
-         y = "log2(max. protein length per gene)") +
-    ggtitle("Max. lengths of proteins with different known numbers of isoforms") +
+         y = "log2(max. protein length (AAs) per gene)") +
+    #ggtitle("Max. lengths of proteins with different known numbers of isoforms") +
     theme_paper
 
 proteoform_fdata_gene_level %>% 
@@ -196,7 +196,7 @@ proteoform_fdata_gene_level %>%
     geom_boxplot(width = 0.15, outlier.colour = NA) +
     labs(x = "Number of detected proteoforms",
          y = "log2(number of uniquely quantified peptides identified per gene)") +
-    ggtitle("Number of uniquely quantified peptides per gene with different numbers of detected proteoforms") +
+    #ggtitle("Number of uniquely quantified peptides per gene with different numbers of detected proteoforms") +
     theme_paper
 
 proteoform_fdata_gene_level %>% 
@@ -208,7 +208,7 @@ proteoform_fdata_gene_level %>%
     geom_boxplot(width = 0.15, outlier.colour = NA) +
     labs(x = "Number of known isoforms per protein",
          y = "log2(number of uniquely quantified peptides identified per gene)") +
-    ggtitle("Number of uniquely quantified peptides per gene with different known numbers of isoforms") +
+    #ggtitle("Number of uniquely quantified peptides per gene with different known numbers of isoforms") +
     theme_paper
 
 proteoform_fdata_gene_level %>% 
@@ -218,7 +218,7 @@ proteoform_fdata_gene_level %>%
     geom_boxplot(width = 0.15, outlier.colour = NA) +
     labs(x = "Number of detected proteoforms",
          y = "log2(number of uniquely quantified peptides identified per gene normalized by max. protein length)") +
-    ggtitle("Protein length normalized number of uniquely quantified peptides per gene with different numbers of detected proteoforms") +
+    #ggtitle("Protein length normalized number of uniquely quantified peptides per gene with different numbers of detected proteoforms") +
     theme_paper
 
 # proteoform_fdata_gene_level %>% 
@@ -233,6 +233,9 @@ proteoform_fdata_gene_level  %>%
     ggplot(aes(as.factor(num_proteoforms), log2(phosphosite_count))) +
     geom_violin(fill = "gray", alpha = 0.5) +
     geom_boxplot(width = 0.15, outlier.colour = NA) +
+    labs(x = "Number of detected proteoforms",
+         y = "log2(number of phosphosites)") +
+    #ggtitle("Number of phosphosites") +
     theme_paper
 
 # correct for length
@@ -241,6 +244,22 @@ proteoform_fdata_gene_level  %>%
     ggplot(aes(as.factor(num_proteoforms), log2(phosphosite_count/length))) +
     geom_violin(fill = "gray", alpha = 0.5) +
     geom_boxplot(width = 0.15, outlier.colour = NA) +
+    labs(x = "Number of detected proteoforms",
+         y = "log2(number of phosphosites normalized by protein length)") +
+    #ggtitle("Number of phosphosites normalized by protein length") +
+    theme_paper
+
+# fraction disorder
+proteoform_fdata_gene_level  %>% 
+    filter(!is.na(fraction_disorder)) %>% 
+    mutate(known_isoforms_binned = cut(known_isoforms, breaks = c(0, 1, 2, 4, 6, 32))) %>% 
+    filter(!is.na(known_isoforms_binned)) %>% 
+    ggplot(aes(as.factor(known_isoforms_binned), fraction_disorder)) +
+    geom_violin(fill = "gray", alpha = 0.5) +
+    geom_boxplot(width = 0.15, outlier.colour = NA) +
+    labs(x = "Number of detected proteoforms",
+         y = "Fraction of disordered protein sequence") +
+    #ggtitle("Number of phosphosites normalized by protein length") +
     theme_paper
 
 # fraction disorder
@@ -249,7 +268,23 @@ proteoform_fdata_gene_level  %>%
     ggplot(aes(as.factor(num_proteoforms), fraction_disorder)) +
     geom_violin(fill = "gray", alpha = 0.5) +
     geom_boxplot(width = 0.15, outlier.colour = NA) +
+    labs(x = "Number of known isoforms",
+         y = "Fraction of disordered protein sequence") +
     theme_paper
 
-# 
+# abundance
+proteoform_fdata_gene_level %>% 
+    dplyr::select(ioi, num_proteoforms, matches("abundance")) %>% 
+    gather(key, value, matches("abundance")) %>% 
+    group_by(ioi, num_proteoforms) %>% 
+    summarize(mean_value = mean(value, na.rm = TRUE),
+              .groups = "drop") %>% 
+    ggplot(aes(as.factor(num_proteoforms), mean_value)) +
+    geom_violin(fill = "gray", alpha = 0.5) +
+    geom_boxplot(width = 0.15, outlier.colour = NA) +
+    labs(x = "Number of detected proteoforms",
+         y = "log2(average protein intensity at 41 degree C)") +
+    #ggtitle("Average protein intensity of proteins with different numbers of detected proteoforms") +
+    theme_paper
+
 
