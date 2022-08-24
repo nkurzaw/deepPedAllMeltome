@@ -113,11 +113,11 @@ detected_vs_known_proteoforms <- proteoform_fdata_gene_level %>%
     mutate(known_isoforms_binned = cut(known_isoforms, breaks = c(0, 1, 2, 4, 6, 32))) %>% 
     filter(!is.na(known_isoforms_binned)) %>% 
     group_by(known_isoforms_binned) %>% 
-    mutate(mean_num_proteoforms = mean(num_proteoforms),
+    mutate(median_num_proteoforms = median(num_proteoforms),
               .groups = "drop") %>% 
     ggplot(aes(num_proteoforms)) + 
     geom_bar() + 
-    geom_vline(aes(xintercept = mean_num_proteoforms), color = "orange") +
+    geom_vline(aes(xintercept = median_num_proteoforms), color = "orange") +
     facet_wrap(~known_isoforms_binned) +
     labs(x = "Number of detected proteoforms",
          y = "Count by bin of number known isoforms") +
@@ -128,11 +128,11 @@ detected_vs_known_proteoforms <- proteoform_fdata_gene_level %>%
 cc_loc_detected_proteoforms <- proteoform_fdata_gene_level %>% 
     filter(!is.na(cc_loc)) %>% 
     group_by(cc_loc) %>% 
-    mutate(mean_num_proteoforms = mean(num_proteoforms),
+    mutate(median_num_proteoforms = median(num_proteoforms),
            .groups = "drop") %>% 
     ggplot(aes(num_proteoforms)) + 
     geom_bar() + 
-    geom_vline(aes(xintercept = mean_num_proteoforms), color = "orange") +
+    geom_vline(aes(xintercept = median_num_proteoforms), color = "orange") +
     facet_wrap(~cc_loc) +
     labs(x = "Number of detected proteoforms",
          y = "Count by bin of cellular location") +
@@ -144,11 +144,11 @@ cc_loc_known_isoforms <- proteoform_fdata_gene_level %>%
     filter(!is.na(cc_loc)) %>% 
     filter(!is.na(known_isoforms)) %>% 
     group_by(cc_loc) %>% 
-    mutate(mean_known_isoforms = mean(known_isoforms),
+    mutate(median_known_isoforms = median(known_isoforms),
            .groups = "drop") %>% 
     ggplot(aes(known_isoforms)) + 
     geom_bar() + 
-    geom_vline(aes(xintercept = mean_known_isoforms), color = "orange") +
+    geom_vline(aes(xintercept = median_known_isoforms), color = "orange") +
     facet_wrap(~cc_loc) +
     labs(x = "Number of known isoforms",
          y = "Count by bin of cellular location") +
@@ -330,7 +330,7 @@ disorder_detected_proteoforms <- proteoform_fdata_gene_level  %>%
     geom_boxplot(width = 0.15, outlier.colour = NA) +
     geom_hline(aes(yintercept = median(fraction_disorder)), 
                color = "black", alpha = 0.25, size = 2) +
-    labs(x = "Number of known isoforms",
+    labs(x = "Number of detected proteoforms",
          y = "Fraction of disorder\nin protein sequence") +
     theme_paper
 
