@@ -69,18 +69,36 @@ graphs <- detect_communities(graphs = graphs,
 saveRDS(object = graphs, file = here("R/benchmark/graphs_comms_pep_cov_50_20_intra_noise.RDS"))
 
 # filter graphs for 0 modularity
-graphs_01 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 0) %>% unlist()]
+graphs_0 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 0) %>% unlist()]
+
+
+proteoforms_intensities <- aggregate_peptides_to_proteoforms(e_set = simulated_peptides_pep_cov_15,
+                                                             graphs = graphs_0,
+                                                             aggregation_fun = sum,
+                                                             BPPARAM = BPPARAM)
+
+# filter out small number of peptides and ambiguous only proteoforms
+proteoforms_intensities_filtered <- proteoforms_intensities %>%
+    .[fData(.)$ambiguous_peptides_only == FALSE, ] %>%
+    .[fData(.)$num_peptides > 2] %>%
+    .[fData(.)$ambiguity_ratio < 0.5]
+
 
 graphs_001 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 1e-13) %>% unlist()]
 
+graphs_001 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 0.01) %>% unlist()]
+
+
 eval_df <- tibble(
     protein_name = names(graphs),
-    modularity = sapply(graphs, get.graph.attribute, name = "proteoform_modularity")
+    modularity = sapply(graphs, get.graph.attribute, name = "proteoform_modularity"),
+    detected_proteoforms = sapply(graphs, function(x) max(get.graph.attribute(x, "communities")$membership))
 ) %>% 
     arrange(desc(modularity)) %>% 
-    mutate(tp = as.numeric(grepl("tp", protein_name)))
+    mutate(tp = as.numeric(grepl("tp", protein_name)),
+           modularity_2 = ifelse(detected_proteoforms == 2, modularity, -modularity))
 
-roc_obj <- roc(eval_df$tp ~ eval_df$modularity)
+roc_obj <- roc(eval_df$tp ~ eval_df$modularity_2)
 auc(roc_obj)
 plot(roc_obj)
 
@@ -88,9 +106,9 @@ pepnet_roc_df <- ggroc(roc_obj)$data %>%
     mutate(method = "pepnet")
 
 # COPF benchmark
-# copf_scores_df <- read_csv(here("R/benchmark/cc_profiler_proteoform_scores_20_intra_noise.csv")) %>%
-#     within(proteoform_score[is.na(proteoform_score)] <- 0) %>%
-#     mutate(tp = as.numeric(grepl("tp", protein_id)))
+copf_scores_df <- read_csv(here("R/benchmark/cc_profiler_proteoform_scores_20_intra_noise.csv")) %>%
+    within(proteoform_score[is.na(proteoform_score)] <- 0) %>%
+    mutate(tp = as.numeric(grepl("tp", protein_id)))
 
 copf_scores_df <- read_csv(here("R/benchmark/cc_profiler_proteoform_scores_pep_cov_50.csv")) %>% 
     within(proteoform_score[is.na(proteoform_score)] <- 0) %>% 
