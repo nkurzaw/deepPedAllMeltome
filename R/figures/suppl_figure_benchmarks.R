@@ -182,6 +182,32 @@ nrow(filter(eval_df, detected_proteoforms == 2, grepl("tp_protein_4", protein_na
 nrow(filter(eval_df, detected_proteoforms == 2, grepl("tp_protein_3", protein_name)))
 # 37
 
+res_15_bar_df <- tibble(
+    ntp = nrow(filter(eval_df, detected_proteoforms == 2)),
+    nfp = nrow(filter(eval_df, detected_proteoforms == 2, grepl("tn_", protein_name))),
+    n_4 = nrow(filter(eval_df, detected_proteoforms == 2, grepl("tp_protein_4", protein_name))),
+    n_3 = nrow(filter(eval_df, detected_proteoforms == 2, grepl("tp_protein_3", protein_name))),
+    n_2 = nrow(filter(eval_df, detected_proteoforms == 2, grepl("tp_protein_2", protein_name))),
+    n_1 = nrow(filter(eval_df, detected_proteoforms == 2, grepl("tp_protein_1", protein_name)))
+) %>% 
+    mutate(FDR = nfp/(ntp + nfp),
+           `%TPs with 4 Tm diff` = n_4/50,
+           `%TPs with 3 Tm diff` = n_3/50,
+           `%TPs with 2 Tm diff` = n_2/50,
+           `%TPs with 1 Tm diff` = n_1/50) %>% 
+    dplyr::select(`%TPs with 4 Tm diff`, `%TPs with 3 Tm diff`,
+                  `%TPs with 2 Tm diff`, `%TPs with 1 Tm diff`,
+                  FDR) %>% 
+    gather(key, value)
+
+sensitivity_fdr_baplot15 <- ggplot(res_15_bar_df, aes(key, value)) + 
+    geom_bar(stat = "identity") +
+    geom_hline(yintercept = 0.1, linetype = "dashed", color = "gray") +
+    xlab("") +
+    theme_paper +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+sensitivity_fdr_baplot15
 
 ## 50 peptides
 nrow(filter(eval_50_df, detected_proteoforms == 2))
@@ -200,3 +226,45 @@ nrow(filter(eval_50_df, detected_proteoforms == 2, grepl("tp_protein_2", protein
 # 45
 nrow(filter(eval_50_df, detected_proteoforms == 2, grepl("tp_protein_1", protein_name)))
 # 7
+
+res_50_bar_df <- tibble(
+    ntp = nrow(filter(eval_50_df, detected_proteoforms == 2)),
+    nfp = nrow(filter(eval_50_df, detected_proteoforms == 2, grepl("tn_", protein_name))),
+    n_4 = nrow(filter(eval_50_df, detected_proteoforms == 2, grepl("tp_protein_4", protein_name))),
+    n_3 = nrow(filter(eval_50_df, detected_proteoforms == 2, grepl("tp_protein_3", protein_name))),
+    n_2 = nrow(filter(eval_50_df, detected_proteoforms == 2, grepl("tp_protein_2", protein_name))),
+    n_1 = nrow(filter(eval_50_df, detected_proteoforms == 2, grepl("tp_protein_1", protein_name)))
+) %>% 
+    mutate(FDR = nfp/(ntp + nfp),
+           `%TPs with 4 Tm diff` = n_4/50,
+           `%TPs with 3 Tm diff` = n_3/50,
+           `%TPs with 2 Tm diff` = n_2/50,
+           `%TPs with 1 Tm diff` = n_1/50) %>% 
+    dplyr::select(`%TPs with 4 Tm diff`, `%TPs with 3 Tm diff`,
+                  `%TPs with 2 Tm diff`, `%TPs with 1 Tm diff`,
+                  FDR) %>% 
+    gather(key, value)
+
+sensitivity_fdr_baplot50 <- ggplot(res_50_bar_df, aes(key, value)) + 
+    geom_bar(stat = "identity") +
+    geom_hline(yintercept = 0.1, linetype = "dashed", color = "gray") +
+    xlab("") +
+    theme_paper +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+sensitivity_fdr_baplot50
+
+
+plot_grid(
+    plot_grid(benchmark_15_pep_roc + theme(legend.position = "none"), 
+              benchmark_50_pep_roc + theme(legend.position = "none"),
+              labels = letters[1:2]),
+    get_legend(benchmark_15_pep_roc), 
+    plot_grid(sensitivity_fdr_baplot15, sensitivity_fdr_baplot50,
+              labels = letters[3:4], ncol = 2),
+    nrow = 3, rel_heights = c(9, 1, 12)
+)
+
+
+ggsave(filename = here("R/figures/suppl_fig_pepnet_benchmark_plus_sensitivity.pdf"), 
+       width = 21, height = 20, units = "cm")
