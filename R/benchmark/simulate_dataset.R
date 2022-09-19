@@ -164,42 +164,7 @@ ggplot(test_combo_df, aes(temperature, rel_value,
 
 # simulate full dataset
 set.seed(123)
-full_simulated_pep_cov_15_df <- simulate_dataset()
-
-saveRDS(full_simulated_pep_cov_15_df, 
-        file = here("R/benchmark/full_simulated_pep_cov_15_df.RDS"))
-
-simulated_peptides_pep_cov_15 <- convert_simulated_dataset_2_eset(full_simulated_pep_cov_15_df)
-
-saveRDS(simulated_peptides_pep_cov_15, 
-        file = here("R/benchmark/simulated_peptides_pep_cov_15_eset.RDS"))
-
-full_simulated_pep_cov_15_02_intra_noise_df <- readRDS(
-    here("R/benchmark/full_simulated_pep_cov_15_02_intra_noise_df.RDS"))
-
-simulated_peptides_pep_cov_15_02_intra_noise <- 
-    convert_simulated_dataset_2_eset(full_simulated_pep_cov_15_02_intra_noise_df)
-
-saveRDS(simulated_peptides_pep_cov_15_02_intra_noise, 
-        file = here("R/benchmark/simulated_peptides_pep_cov_15_02_intra_noise.RDS"))
-
-full_simulated_pep_cov_15_08_intra_noise_df <- readRDS(
-    here("R/benchmark/full_simulated_pep_cov_15_08_intra_noise_df.RDS"))
-
-simulated_peptides_pep_cov_15_08_intra_noise <- 
-    convert_simulated_dataset_2_eset(full_simulated_pep_cov_15_08_intra_noise_df)
-
-saveRDS(simulated_peptides_pep_cov_15_08_intra_noise, 
-        file = here("R/benchmark/simulated_peptides_pep_cov_15_08_intra_noise.RDS"))
-
-full_simulated_pep_cov_15_15_intra_noise_df <- readRDS(
-    here("R/benchmark/full_simulated_pep_cov_15_15_intra_noise_df.RDS"))
-
-simulated_peptides_pep_cov_15_15_intra_noise <- 
-    convert_simulated_dataset_2_eset(full_simulated_pep_cov_15_15_intra_noise_df)
-
-saveRDS(simulated_peptides_pep_cov_15_15_intra_noise, 
-        file = here("R/benchmark/simulated_peptides_pep_cov_15_15_intra_noise.RDS"))
+full_simulated_pep_cov_15_20_intra_noise_df <- simulate_dataset()
 
 full_simulated_pep_cov_15_20_intra_noise_df <- readRDS(
     here("R/benchmark/full_simulated_pep_cov_15_20_intra_noise_df.RDS"))
@@ -215,30 +180,6 @@ export_df <- full_simulated_pep_cov_15_20_intra_noise_df %>%
     dplyr::select(-proteoform_name) %>% 
     unite("temperature_sample", c("temperature", "sample"))
 write_csv(export_df, file = here("R/benchmark/simulated_pep_cov_15_20_intra_noise.csv"))
-
-full_simulated_pep_cov_15_15_intra_noise_more_hard_cases_df <- readRDS(
-    here("R/benchmark/full_simulated_pep_cov_15_15_intra_noise_more_hard_cases_df.RDS"))
-
-simulated_peptides_pep_cov_15_15_intra_noise_more_hard_cases <- 
-    convert_simulated_dataset_2_eset(full_simulated_pep_cov_15_15_intra_noise_more_hard_cases_df)
-
-saveRDS(simulated_peptides_pep_cov_15_15_intra_noise_more_hard_cases, 
-        file = here("R/benchmark/simulated_peptides_pep_cov_15_15_intra_noise_more_hard_cases.RDS"))
-
-full_simulated_pep_cov_15_15_intra_noise_more_intermediate_hard_cases_df <- readRDS(
-    here("R/benchmark/full_simulated_pep_cov_15_15_intra_noise_more_intermediate_hard_cases_df.RDS"))
-
-simulated_peptides_pep_cov_15_15_intra_noise_more_intermediate_hard_cases <- 
-    convert_simulated_dataset_2_eset(full_simulated_pep_cov_15_15_intra_noise_more_intermediate_hard_cases_df)
-
-saveRDS(simulated_peptides_pep_cov_15_15_intra_noise_more_intermediate_hard_cases, 
-        file = here("R/benchmark/simulated_peptides_pep_cov_15_15_intra_noise_more_intermediate_hard_cases.RDS"))
-
-# export for COPF analyiss
-export_df <- full_simulated_pep_cov_15_15_intra_noise_more_intermediate_hard_cases_df %>% 
-    dplyr::select(-proteoform_name) %>% 
-    unite("temperature_sample", c("temperature", "sample"))
-write_csv(export_df, file = here("R/benchmark/simulated_pep_cov_15_15_intra_noise_more_intermediate_hard_cases_spread_df.csv"))
 
 # simulate full dataset with 50 peptides per protein
 set.seed(123)
