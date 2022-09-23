@@ -3,8 +3,9 @@ library(tidyr)
 library(readr)
 library(data.table)
 library(CCprofiler)
+library(here)
 
-df <- read_csv("simulated_pep_cov_15_20_intra_noise.csv") %>%
+df <- read_csv(here("R/benchmark/simulated_pep_cov_15_20_intra_noise.csv")) %>%
     mutate(intensity = rel_value * 1000) %>%
     dplyr::select(protein_id = protein_name, peptide_id = peptide,
                   filename = temperature_sample, intensity)
@@ -33,7 +34,7 @@ scores <- unique(traces_scored$trace_annotation[,.(proteoform_score,proteoform_s
 write_csv(scores, file = "cc_profiler_proteoform_scores_20_intra_noise.csv")
 
 # 50 peptides coverage
-df <- read_csv("simulated_pep_cov_50_20_intra_noise_spread_df.csv") %>%
+df <- read_csv(here("R/benchmark/simulated_pep_cov_50_20_intra_noise_spread_df.csv")) %>%
     mutate(intensity = rel_value * 1000) %>%
     dplyr::select(protein_id = protein_name, peptide_id = peptide,
                   filename = temperature_sample, intensity)
