@@ -82,7 +82,8 @@ num_prot_length_df <- left_join(number_of_proteoforms_df, uniprot_length_df, by 
 
 ggplot(num_prot_length_df, aes(n, log2(max_length))) +
     geom_point(alpha = 0.2) +
-    ggpubr::stat_cor(cor.coef.name = "rho") +
+    #ggpubr::stat_cor(cor.coef.name = "rho") +
+    ggpmisc::stat_poly_eq(formula = y ~ x, parse = TRUE) +
     theme_paper
     
 
@@ -119,3 +120,136 @@ ggplot(modularities_num_proteoforms_df, aes(x_modularity, y_modularity)) +
 
 ggsave(filename = "modularity_comparison.pdf", 
        width = 21, height = 12, units = "cm")
+
+# load graphs
+graphs <- readRDS(file.path(proteoform_detection_folder, "graphs_comms.RDS"))
+# filter graphs for 0 modularity
+graphs_gt0 <- graphs[(lapply(graphs, get.graph.attribute, 
+                             name = "proteoform_modularity") > 1e-13) %>% unlist()]
+
+# convert graphs_gt0 to data frame
+graph_gt0_df <- bind_rows(lapply(names(graphs_gt0), function(gr_nm){
+    membership_vec <- graphs_gt0[[gr_nm]]$communities$membership
+    tibble(gene = gr_nm,
+           psms = names(membership_vec),
+           proteoform = membership_vec,
+           proteoform_id = paste(gr_nm, membership_vec, sep = "_")) %>% 
+        arrange(proteoform)
+})) %>% 
+    filter(proteoform_id %in% proteoform_df$gene) %>% 
+    mutate(group = "modularity > 0")
+
+# define axis labels
+x_label <- expression("Temperature"* " " * "("*degree*C*")")
+y_label <- "Fraction non-denatured"
+
+# TMPO peptides assigned to proteoforms plot
+tmpo_proteofom_peptide_df <- graph_gt0_df %>% 
+    filter(gene == "TMPO") %>% 
+    left_join(peptides_df %>% 
+                  filter(id == "TMPO") %>% 
+                  na.omit(),
+              by = c("psms" = "gene")) %>% 
+    filter(!grepl("_BR", sample_name_machine))
+
+ggplot(tmpo_proteofom_peptide_df, aes(temperature, value)) +
+    geom_line(aes(group = psms, color = proteoform_id), alpha = 0.25) +
+    scale_color_manual(values = c("#FF5376", "#72AFD9")) +
+    facet_wrap(~sample_name_machine) +
+    coord_cartesian(ylim = c(0, 1.75)) +
+    labs(x = x_label, y = y_label) +
+    theme_paper +
+    theme(legend.position = "bottom")
+
+ggsave(filename = here("R/figures/figure_tmpo_proteofom_peptide_df.pdf"), 
+       width = 18, height = 9, units = "cm")
+
+# akap1 peptides assigned to proteoforms plot
+aka1_proteofom_peptide_df <- graph_gt0_df %>% 
+    filter(gene == "AKAP1") %>% 
+    left_join(peptides_df %>% 
+                  filter(id == "AKAP1") %>% 
+                  na.omit(),
+              by = c("psms" = "gene")) %>% 
+    filter(!grepl("_BR", sample_name_machine))
+
+ggplot(aka1_proteofom_peptide_df, aes(temperature, value)) +
+    geom_line(aes(group = psms, color = proteoform_id), alpha = 0.25) +
+    scale_color_manual(values = c("#FF5376", "#72AFD9", "#E3D26F")) +
+    facet_wrap(~sample_name_machine) +
+    coord_cartesian(ylim = c(0, 1.75)) +
+    labs(x = x_label, y = y_label) +
+    theme_paper +
+    theme(legend.position = "bottom")
+
+ggsave(filename = here("R/figures/figure_aka1_proteofom_peptide_df.pdf"), 
+       width = 18, height = 9, units = "cm")
+
+# global peptides assigned to proteoforms plot
+global_proteofom_peptide_df <- graph_gt0_df %>% 
+    left_join(peptides_df %>% 
+                  filter(temperature == 41, sample_name_machine == "697") %>% 
+                  na.omit() %>% 
+                  dplyr::select(gene, first_protein_id),
+              by = c("psms" = "gene"))
+
+global_proteoform_summary_df <- global_proteofom_peptide_df %>% 
+    filter(!is.na(first_protein_id)) %>% 
+    group_by(gene, first_protein_id) %>% 
+    dplyr::summarize(proteoform_1_count = sum(proteoform == 1), 
+                     proteoform_2_count = sum(proteoform == 2),
+                     proteoform_3_count = sum(proteoform == 3),
+                     proteoform_4_count = sum(proteoform == 4)) %>% 
+    # ungroup() %>% 
+    # group_by(gene) %>% 
+    # filter(n() > 1) %>% 
+    ungroup
+
+global_proteoform_summary_df <- global_proteoform_summary_df %>% 
+    group_by(gene) %>% 
+    dplyr::summarise(known_proteoforms_reflected = 
+                         (any(proteoform_1_count > proteoform_2_count) & 
+                         any(proteoform_2_count > proteoform_1_count)) | 
+                         (any(proteoform_1_count > proteoform_3_count) & 
+                         any(proteoform_3_count > proteoform_1_count)) |
+                         (any(proteoform_1_count > proteoform_4_count) & 
+                         any(proteoform_4_count > proteoform_1_count)) | 
+                         (any(proteoform_2_count > proteoform_4_count) & 
+                        any(proteoform_4_count > proteoform_2_count)) | 
+                         (any(proteoform_2_count > proteoform_3_count) & 
+                        any(proteoform_3_count > proteoform_2_count)) |
+                         (any(proteoform_3_count > proteoform_4_count) & 
+                        any(proteoform_4_count > proteoform_3_count))) %>% 
+    ungroup()
+
+global_proteoform_summary_df
+# # A tibble: 5,620 × 2
+# gene  known_proteoforms_reflected
+# <chr> <lgl>                      
+#     1 A2M   FALSE                      
+# 2 AAAS  FALSE                      
+# 3 AACS  FALSE                      
+# 4 AAGAB FALSE                      
+# 5 AAK1  TRUE                       
+# 6 AAR2  FALSE                      
+# 7 AARS1 FALSE                      
+# 8 AARS2 FALSE                      
+# 9 AASDH FALSE                      
+# 10 AASS  FALSE                      
+# # … with 5,610 more rows
+
+global_proteoform_summary_df %>% filter(known_proteoforms_reflected)
+# A tibble: 1,307 × 2
+# gene       known_proteoforms_reflected
+# <chr>      <lgl>                      
+#     1 AAK1       TRUE                       
+# 2 ABCE1      TRUE                       
+# 3 ABCF1      TRUE                       
+# 4 ABL2       TRUE                       
+# 5 ABLIM1     TRUE                       
+# 6 ABR        TRUE                       
+# 7 AC004151.1 TRUE                       
+# 8 AC005747.1 TRUE                       
+# 9 AC022966.1 TRUE                       
+# 10 AC093012.1 TRUE                       
+# # … with 1,297 more rows
