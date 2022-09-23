@@ -97,6 +97,9 @@ combo_15_roc_df <- bind_rows(pepnet_15_roc_df, copf_15_roc_df)
 benchmark_15_pep_roc <- ggplot(combo_15_roc_df, aes(1-specificity, sensitivity, color = method)) +
     geom_line() +
     geom_abline(slope = 1, linetype = "dashed", color="gray") +
+    geom_point(aes(color = method),
+               shape = 8, data = tail(combo_15_roc_df %>% as_tibble() %>% 
+                                          filter(method == "pepnet", threshold > 1e-13), n = 1)) +
     geom_text(aes(x, y, label = label, color = method), 
               data = tibble(x = c(0.75, 0.75),
                             y = c(0.175, 0.25), 
@@ -145,6 +148,9 @@ combo_50_roc_df <- bind_rows(pepnet_50_roc_df, copf_50_roc_df)
 benchmark_50_pep_roc <- ggplot(combo_50_roc_df, aes(1-specificity, sensitivity, color = method)) +
     geom_line() +
     geom_abline(slope = 1, linetype = "dashed", color="gray") +
+    geom_point(aes(color = method),
+               shape = 8, data = tail(combo_50_roc_df %>% as_tibble() %>% 
+                                       filter(method == "pepnet", threshold > 1e-13), n = 1)) +
     geom_text(aes(x, y, label = label, color = method), 
               data = tibble(x = c(0.75, 0.75),
                             y = c(0.175, 0.25), 
@@ -254,14 +260,37 @@ sensitivity_fdr_baplot50 <- ggplot(res_50_bar_df, aes(key, value)) +
 
 sensitivity_fdr_baplot50
 
+# check variabillity of recovered vs. not recovered proteoforms
+sim_data_15_df <- readRDS(here("R/benchmark/full_simulated_pep_cov_15_20_intra_noise_df.RDS"))
+
+sim_data_15_delta3_recovered_df <- sim_data_15_df %>% 
+    filter(grepl("tp_protein_3", protein_name)) %>% 
+    mutate(recovered = ifelse(protein_name %in% filter(eval_df, detected_proteoforms == 2, 
+                                                       grepl("tp_protein_3", protein_name))$protein_name,
+                              TRUE, FALSE)) %>% 
+    group_by(protein_name, proteoform_name, recovered, temperature) %>% 
+    dplyr::summarize(summed_squared_distances = sum(dist(rel_value)^2)) %>% 
+    ungroup() %>% 
+    group_by(protein_name, proteoform_name, recovered) %>% 
+    dplyr::summarize(avg_eucl_squared_distances = sqrt(sum(summed_squared_distances))) %>% 
+    ungroup() %>% 
+    group_by(protein_name, recovered) %>% 
+    dplyr::summarize(max_avg_eucl_squared_distances = max(avg_eucl_squared_distances)) %>% 
+    ungroup()
+
+peptide_curve_diff_boxplot <- ggplot(sim_data_15_delta3_recovered_df, aes(recovered, max_avg_eucl_squared_distances)) + 
+    geom_boxplot() +
+    labs(x = expression("Recovered simulated proteoforms\nwith 15 peptides and Tm difff. of 3"*degree*C*""), 
+         y = "Max. average Euclidean distance of\npeptide melting curves per proteoform") +
+    theme_paper
 
 plot_grid(
     plot_grid(benchmark_15_pep_roc + theme(legend.position = "none"), 
               benchmark_50_pep_roc + theme(legend.position = "none"),
               labels = letters[1:2]),
     get_legend(benchmark_15_pep_roc), 
-    plot_grid(sensitivity_fdr_baplot15, sensitivity_fdr_baplot50,
-              labels = letters[3:4], ncol = 2),
+    plot_grid(sensitivity_fdr_baplot15, sensitivity_fdr_baplot50, peptide_curve_diff_boxplot,
+              align = "h", labels = letters[3:5], ncol = 3),
     nrow = 3, rel_heights = c(9, 1, 12)
 )
 
