@@ -32,4 +32,6 @@ saveRDS(proteins_vsn_norm, here("proteoform_detection/output/standard/proteins.R
 protein_ratios <- build_ratios_to_lowest_temperature(e_set = proteins_vsn_norm, 
                                                      sample_col = "sample_name")
 
+saveRDS(protein_ratios, here("proteoform_detection/output/standard/protein_ratios.RDS"))
+
 proteins_df <- biobroom::tidy.ExpressionSet(protein_ratios, addPheno = TRUE)
