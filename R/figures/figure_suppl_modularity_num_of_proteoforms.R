@@ -165,7 +165,7 @@ ggsave(filename = here("R/figures/figure_tmpo_proteofom_peptide_df.pdf"),
        width = 18, height = 9, units = "cm")
 
 # akap1 peptides assigned to proteoforms plot
-aka1_proteofom_peptide_df <- graph_gt0_df %>% 
+akap1_proteofom_peptide_df <- graph_gt0_df %>% 
     filter(gene == "AKAP1") %>% 
     left_join(peptides_df %>% 
                   filter(id == "AKAP1") %>% 
@@ -173,16 +173,87 @@ aka1_proteofom_peptide_df <- graph_gt0_df %>%
               by = c("psms" = "gene")) %>% 
     filter(!grepl("_BR", sample_name_machine))
 
-ggplot(aka1_proteofom_peptide_df, aes(temperature, value)) +
+ggplot(akap1_proteofom_peptide_df, aes(temperature, value)) +
     geom_line(aes(group = psms, color = proteoform_id), alpha = 0.25) +
     scale_color_manual(values = c("#FF5376", "#72AFD9", "#E3D26F")) +
     facet_wrap(~sample_name_machine) +
     coord_cartesian(ylim = c(0, 1.75)) +
     labs(x = x_label, y = y_label) +
+    ggtitle("AKAP1 peptides colored by detected proteoforms") +
     theme_paper +
     theme(legend.position = "bottom")
 
 ggsave(filename = here("R/figures/figure_aka1_proteofom_peptide_df.pdf"), 
+       width = 18, height = 9, units = "cm")
+
+## run COPF on same examples to compare results
+tmpo_akap1_copf_input_df <- bind_rows(tmpo_proteofom_peptide_df, akap1_proteofom_peptide_df) %>%
+    mutate(intensity = value * 1000) %>% 
+    group_by(psms) %>% 
+    filter(n() == 160) %>% 
+    ungroup() %>% 
+    dplyr::select(protein_id = gene,
+                  peptide_id = psms,
+                  temperature,
+                  sample_name_machine,
+                  intensity) %>% 
+    unite("filename", c("temperature", "sample_name_machine"))
+
+write.csv(tmpo_akap1_copf_input_df, here("R/benchmark/tmpo_akap1_copf_input.csv"))
+
+fraction_annotation <- tibble(filename = unique(tmpo_akap1_copf_input_df$filename))  %>%
+    mutate(fraction_number = 1:n())
+
+pepTraces <- importPCPdata(input_data = as.data.table(df),
+                           fraction_annotation = as.data.table(fraction_annotation),
+                           rm_decoys = FALSE)
+
+traces_corr <- CCprofiler::calculateGeneCorrMatrices(pepTraces)
+
+traces_clustered <- clusterPeptides(
+    traces_corr,
+    method = "average", plot = F, PDF=F,
+    name="ProteoformClusters_deepmeltome_TMPO_AKAP1_")
+
+traces_clusteredInN <- cutClustersInNreal(traces_clustered, clusterN = 2,
+                                          min_peptides_per_cluster = 5)
+
+write_csv(traces_clusteredInN$trace_annotation, here("R/benchmark/copf_peptide_clustering_tmpo_akap1.csv"))
+
+copf_tmpo_akap_res <- read_csv(here("R/benchmark/copf_peptide_clustering_tmpo_akap1.csv"))
+
+
+tmpo_proteofom_peptide_copf_df <- tmpo_proteofom_peptide_df %>% 
+    left_join(copf_tmpo_akap_res, by = c("psms" = "id"))
+
+ggplot(tmpo_proteofom_peptide_copf_df, aes(temperature, value)) +
+    geom_line(aes(group = psms, color = as.factor(cluster)), alpha = 0.25) +
+    scale_color_manual("COPF cluster", values = c("#FF5376", "#72AFD9", "#E3D26F")) +
+    facet_wrap(~sample_name_machine) +
+    coord_cartesian(ylim = c(0, 1.75)) +
+    labs(x = x_label, y = y_label) +
+    ggtitle("AKAP1 peptides colored by detected COPF cluster") +
+    theme_paper +
+    theme(legend.position = "bottom")
+
+ggsave(filename = here("R/figures/figure_tmpo_copf_proteofom_peptide_df.pdf"), 
+       width = 18, height = 9, units = "cm")
+
+akap1_proteofom_peptide_copf_df <- akap1_proteofom_peptide_df %>% 
+    left_join(copf_tmpo_akap_res, by = c("psms" = "id"))
+
+ggplot(akap1_proteofom_peptide_copf_df, aes(temperature, value)) +
+    geom_line(aes(group = psms, color = as.factor(cluster)), alpha = 0.25) +
+    scale_color_manual(values = c("#FF5376", "#72AFD9", "#E3D26F")) +
+    facet_wrap(~sample_name_machine) +
+    coord_cartesian(ylim = c(0, 1.75)) +
+    labs(x = x_label, y = y_label) +
+    ggtitle("AKAP1 peptides colored by detected COPF cluster") +
+    theme_paper +
+    theme(legend.position = "bottom")
+
+
+ggsave(filename = here("R/figures/figure_akap1_copf_proteofom_peptide_df.pdf"), 
        width = 18, height = 9, units = "cm")
 
 # global peptides assigned to proteoforms plot
