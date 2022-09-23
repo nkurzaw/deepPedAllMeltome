@@ -64,7 +64,7 @@ peptides_raw <- psms_to_peptides(psms = psms,
                                  sample_meta_file = here("meta", "meltome_sample_meta.txt"),
                                  sample_id_col = "sample_id")
 
-saveRDS(object = peptides_raw, file = file.path(output_folder, "peptides_raw2.RDS"))
+saveRDS(object = peptides_raw, file = file.path(output_folder, "peptides_raw.RDS"))
 
 # peptides_raw <- readRDS(file = file.path(output_folder, "peptides_raw.RDS"))
 
@@ -88,7 +88,7 @@ fData(peptides) <- peptides %>%
 pData(peptides)$sample_name_temp <- paste0(pData(peptides)$sample_name, "_", pData(peptides)$temperature)
 
 # store
-saveRDS(object = peptides, file = file.path(output_folder, "peptides2.RDS"))
+saveRDS(object = peptides, file = file.path(output_folder, "peptides.RDS"))
 
 # peptides <- readRDS(file = file.path(output_folder, "peptides.RDS"))
 
@@ -106,7 +106,7 @@ similarities <- evaluate_similarity(e_set = peptides,
                                     transform_fun = function (x) 1 / (1 + x),
                                     BPPARAM = BPPARAM)
 
-saveRDS(object = similarities, file = file.path(output_folder, "similarities2.RDS"))
+saveRDS(object = similarities, file = file.path(output_folder, "similarities.RDS"))
 
 # similarities <- readRDS(file = file.path(output_folder, "similarities.RDS"))
 
@@ -136,33 +136,39 @@ saveRDS(object = graphs, file = file.path(output_folder, "graphs_comms.RDS"))
 
 # filter graphs for 0 modularity
 graphs_0 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 0) %>% unlist()]
-graphs_01 <- graphs[(lapply(graphs, get.graph.attribute, name = "proteoform_modularity") > 1e-13) %>% unlist()]
-
 
 proteoforms_intensities <- aggregate_peptides_to_proteoforms(e_set = peptides_raw,
-                                                             graphs = graphs_01,
+                                                             graphs = graphs_0,
                                                              aggregation_fun = sum,
                                                              BPPARAM = BPPARAM)
 
 # filter out small number of peptides and ambiguous only proteoforms
 proteoforms_intensities_filtered <- proteoforms_intensities %>%
   .[fData(.)$ambiguous_peptides_only == FALSE, ] %>%
-  .[fData(.)$num_peptides > 4] %>%
+  .[fData(.)$num_peptides > 2] %>%
   .[fData(.)$ambiguity_ratio < 0.5]
+
+# # different filter for proteins with 0 membership and proteins with proteoforms
+# proteoforms_intensities_filtered <- proteoforms_intensities %>%
+#   .[fData(.)$ambiguous_peptides_only == FALSE, ] %>%
+#   .[(fData(.)$membership > 0 & fData(.)$num_peptides > 4) | 
+#       (fData(.)$membership == 0 & fData(.)$num_peptides > 2)] %>%
+#   .[fData(.)$ambiguity_ratio < 0.5]
 
 # VSN normalisation
 proteoforms_vsn_norm <- vsn_normalize_by_temperature(e_set = proteoforms_intensities_filtered)
 
-# # ratios to lowest temperature  
-# proteoforms <- build_ratios_to_lowest_temperature(e_set = proteoforms_vsn_norm, 
-#                                                   sample_col = "sample_name")
+saveRDS(object = proteoforms_vsn_norm, file = file.path(output_folder, "proteoforms_narrow_range_focused_q>1e-13_min_4_pep.RDS"))
 
-#saveRDS(object = proteoforms, file = file.path(output_folder, "proteoforms_narrow_range_focused.RDS"))
-saveRDS(object = proteoforms_vsn_norm, file = file.path(output_folder, "proteoforms_narrow_range_focused_q>1e-13.RDS"))
+# ratios to lowest temperature
+proteoform_ratios <- build_ratios_to_lowest_temperature(e_set = proteoforms_vsn_norm,
+                                                         sample_col = "sample_name")
 
-# proteoforms <- readRDS(file = file.path(output_folder, "proteoforms.RDS"))
+saveRDS(object = proteoform_ratios, file = file.path(output_folder, "proteoform_ratios_narrow_range_focused_q>1e-13_min_4_pep.RDS"))
 
-iois <- proteoforms_vsn_norm %>%
+# proteoforms <- readRDS(file = file.path(output_folder, "proteoform_ratios_narrow_range_focused.RDS"))
+
+iois <- proteoforms %>%
   fData() %>%
   filter(membership != 0) %>%
   .$ioi %>%
@@ -170,7 +176,7 @@ iois <- proteoforms_vsn_norm %>%
   unique()
 
 # plot
-o <- file.path(output_folder, "proteoforms")
+o <- file.path(output_folder, "proteoforms_q>1e-13")
 if (!dir.exists(o)) dir.create(o, recursive = TRUE)
 for (ioi in iois) {
   pdf(file = file.path(o, paste0(ioi, ".pdf")))
@@ -192,7 +198,7 @@ cat("=== Evaluate parameters\n")
 graph_parameters <- calculate_graph_parameters(graphs = graphs,
                                                BPPARAM = BPPARAM)
 write_delim(x = graph_parameters,
-            file = file.path(output_folder, "graph_parameters.txt"),
+            file = file.path(output_folder, "graph_parameters_q>1e-13.txt"),
             delim = "\t",
             col_names = TRUE)
 
@@ -200,7 +206,7 @@ write_delim(x = graph_parameters,
 community_parameters <- calculate_community_parameters(graphs = graphs,
                                                        BPPARAM = BPPARAM)
 write_delim(x = community_parameters,
-            file = file.path(output_folder, "community_parameters.txt"),
+            file = file.path(output_folder, "community_parameters_q>1e-13.txt"),
             delim = "\t",
             col_names = TRUE)
 
@@ -212,7 +218,7 @@ parameters_df <- community_parameters %>%
                                   if_else(max_modularity >= 0.05, "0.05",
                                           if_else(max_modularity >= 0, "0.00", "neg")))))
 
-pdf(file = file.path(output_folder, "community_parameters.pdf"))
+pdf(file = file.path(output_folder, "community_parameters_q>1e-13.pdf"))
 
 lapply(X = colnames(parameters_df)[3:6],
        FUN = function (parameter_name) {
@@ -232,7 +238,7 @@ dev.off()
 
 
 # evaluate within proteoform similarities
-pdf(file = file.path(output_folder, "proteoform_similarities.pdf"))
+pdf(file = file.path(output_folder, "proteoform_similarities_q>1e-13.pdf"))
 
 proteoform_similarities <- get_similarities_per_proteoform(graphs = graphs,
                                                            modularity_cutoffs = c(-Inf, 0, 0.05, 0.1, 0.2),
