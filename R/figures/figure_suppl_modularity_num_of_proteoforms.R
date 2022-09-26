@@ -158,6 +158,7 @@ ggplot(tmpo_proteofom_peptide_df, aes(temperature, value)) +
     facet_wrap(~sample_name_machine) +
     coord_cartesian(ylim = c(0, 1.75)) +
     labs(x = x_label, y = y_label) +
+    ggtitle("TMPO peptides colored by detected proteoforms") +
     theme_paper +
     theme(legend.position = "bottom")
 
@@ -232,7 +233,7 @@ ggplot(tmpo_proteofom_peptide_copf_df, aes(temperature, value)) +
     facet_wrap(~sample_name_machine) +
     coord_cartesian(ylim = c(0, 1.75)) +
     labs(x = x_label, y = y_label) +
-    ggtitle("AKAP1 peptides colored by detected COPF cluster") +
+    ggtitle("TMPO peptides colored by detected COPF cluster") +
     theme_paper +
     theme(legend.position = "bottom")
 
