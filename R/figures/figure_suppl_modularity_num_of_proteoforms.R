@@ -163,7 +163,7 @@ ggplot(tmpo_proteofom_peptide_df, aes(temperature, value)) +
     theme(legend.position = "bottom")
 
 ggsave(filename = here("R/figures/figure_tmpo_proteofom_peptide_df.pdf"), 
-       width = 18, height = 9, units = "cm")
+       width = 18, height = 12, units = "cm")
 
 # akap1 peptides assigned to proteoforms plot
 akap1_proteofom_peptide_df <- graph_gt0_df %>% 
@@ -185,7 +185,7 @@ ggplot(akap1_proteofom_peptide_df, aes(temperature, value)) +
     theme(legend.position = "bottom")
 
 ggsave(filename = here("R/figures/figure_aka1_proteofom_peptide_df.pdf"), 
-       width = 18, height = 9, units = "cm")
+       width = 18, height = 12, units = "cm")
 
 ## run COPF on same examples to compare results
 tmpo_akap1_copf_input_df <- bind_rows(tmpo_proteofom_peptide_df, akap1_proteofom_peptide_df) %>%
@@ -238,7 +238,7 @@ ggplot(tmpo_proteofom_peptide_copf_df, aes(temperature, value)) +
     theme(legend.position = "bottom")
 
 ggsave(filename = here("R/figures/figure_tmpo_copf_proteofom_peptide_df.pdf"), 
-       width = 18, height = 9, units = "cm")
+       width = 18, height = 12, units = "cm")
 
 akap1_proteofom_peptide_copf_df <- akap1_proteofom_peptide_df %>% 
     left_join(copf_tmpo_akap_res, by = c("psms" = "id"))
@@ -255,7 +255,7 @@ ggplot(akap1_proteofom_peptide_copf_df, aes(temperature, value)) +
 
 
 ggsave(filename = here("R/figures/figure_akap1_copf_proteofom_peptide_df.pdf"), 
-       width = 18, height = 9, units = "cm")
+       width = 18, height = 12, units = "cm")
 
 # global peptides assigned to proteoforms plot
 global_proteofom_peptide_df <- graph_gt0_df %>% 
