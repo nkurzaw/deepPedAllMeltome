@@ -176,7 +176,7 @@ iois <- proteoforms %>%
   unique()
 
 # plot
-o <- file.path(output_folder, "proteoforms_q>1e-13")
+o <- file.path(output_folder, "proteoforms")
 if (!dir.exists(o)) dir.create(o, recursive = TRUE)
 for (ioi in iois) {
   pdf(file = file.path(o, paste0(ioi, ".pdf")))
@@ -198,7 +198,7 @@ cat("=== Evaluate parameters\n")
 graph_parameters <- calculate_graph_parameters(graphs = graphs,
                                                BPPARAM = BPPARAM)
 write_delim(x = graph_parameters,
-            file = file.path(output_folder, "graph_parameters_q>1e-13.txt"),
+            file = file.path(output_folder, "graph_parameters.txt"),
             delim = "\t",
             col_names = TRUE)
 
@@ -206,7 +206,7 @@ write_delim(x = graph_parameters,
 community_parameters <- calculate_community_parameters(graphs = graphs,
                                                        BPPARAM = BPPARAM)
 write_delim(x = community_parameters,
-            file = file.path(output_folder, "community_parameters_q>1e-13.txt"),
+            file = file.path(output_folder, "community_parameters.txt"),
             delim = "\t",
             col_names = TRUE)
 
@@ -218,7 +218,7 @@ parameters_df <- community_parameters %>%
                                   if_else(max_modularity >= 0.05, "0.05",
                                           if_else(max_modularity >= 0, "0.00", "neg")))))
 
-pdf(file = file.path(output_folder, "community_parameters_q>1e-13.pdf"))
+pdf(file = file.path(output_folder, "community_parameters.pdf"))
 
 lapply(X = colnames(parameters_df)[3:6],
        FUN = function (parameter_name) {
@@ -238,7 +238,7 @@ dev.off()
 
 
 # evaluate within proteoform similarities
-pdf(file = file.path(output_folder, "proteoform_similarities_q>1e-13.pdf"))
+pdf(file = file.path(output_folder, "proteoform_similarities.pdf"))
 
 proteoform_similarities <- get_similarities_per_proteoform(graphs = graphs,
                                                            modularity_cutoffs = c(-Inf, 0, 0.05, 0.1, 0.2),
@@ -250,7 +250,7 @@ dev.off()
 
 ############### QC PLOTS ###############
 
-pdf(file = file.path(output_folder, "qc_plots_q>1e-13.pdf"))
+pdf(file = file.path(output_folder, "qc_plots.pdf"))
 
 plot_num_proteoforms_per_id(graphs = graphs, BPPARAM = BPPARAM)
 
