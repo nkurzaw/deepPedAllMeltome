@@ -4,6 +4,7 @@ library(biomaRt)
 library(Biostrings)
 library(Biobase)
 library(msa)
+library(here)
 
 export_to_viz <- function (iois,
                            graphs,
@@ -192,12 +193,10 @@ export_to_viz <- function (iois,
 source("/Users/kurzawa/repos/deepPedAllMeltome/R/pepnet/export_to_viz.R")
 
 # read in peptide data
-peptides <- readRDS("R/data/peptides.RDS")
-#peptides <- readRDS("proteoform_detection/output/standard/peptides.RDS")
+peptides <- readRDS(here("proteoform_detection/output/standard/peptides.RDS"))
 
 # read in graph data
-graphs <- readRDS("R/data/graphs_comms.RDS")
-#graphs <- readRDS("proteoform_detection/output/standard/graphs_comms.RDS")
+graphs <- readRDS(here("proteoform_detection/output/standard/graphs_comms.RDS"))
 
 peptide_features_df <- tibble(
     protein_ids = featureData(peptides)$protein_ids,
@@ -209,7 +208,7 @@ export_to_viz(
     iois = c(56, 97, 334, 419, 712, 4005, 4593, 4904, 6425, 7056,
              550, 1997, 2249, 2465, 3888, 4399, 5276, 5485, 5642,
              4514, 1609, 5705, 689, 3674, 838, 304, 961, 1199, 650,
-             368, 1358, 3431, 3144, 436, 3839),
+             368, 1358, 3431, 3144, 436, 4834, 3839),
     peptide_features = peptide_features_df,
     graphs = graphs, 
     output_folder = "/Users/kurzawa/repos/pepnet/pepnetvis/public/data")
