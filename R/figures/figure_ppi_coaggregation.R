@@ -24,6 +24,14 @@ theme_paper <- theme_bw(base_size = 6) +
           axis.text = element_text(size = 8),
           legend.text = element_text(size = 8))
 
+# source all files in the functions directory
+sourceDir <- function(path, ...) {
+    for (nm in list.files(path, pattern = "\\.[RrSsQq]$")) {
+        source(file.path(path, nm), ...)
+    }
+}
+sourceDir(path = here("R/drugsens_cor"))
+
 # read in sample meta info
 sample_meta_stages <- read_tsv(here("meta/sample_meta_stages.txt"))
 
@@ -55,11 +63,17 @@ names(cl_colors) <- sort(
     unique(gsub("_BR2", "", proteoform_df$sample_name_machine)))
 
 # load individual cell line tpca results
+# tpca_result_list <- readRDS(
+#     file.path(ppi_coaggregation_folder,
+#               "tpca_result_list_narrow_range_focused_hq_filtered.RDS"))
 tpca_result_list <- readRDS(
     file.path(ppi_coaggregation_folder,
               "tpca_result_list_narrow_range_focused_hq_filtered.RDS"))
 
 # load multi-cell line tpca results
+# multi_cell_line_rtpca_df <- readRDS(
+#     file.path(ppi_coaggregation_folder,
+#               "multi_cell_line_rtpca_robust_df.RDS"))
 multi_cell_line_rtpca_df <- readRDS(
     file.path(ppi_coaggregation_folder,
               "multi_cell_line_rtpca_robust_df.RDS"))
