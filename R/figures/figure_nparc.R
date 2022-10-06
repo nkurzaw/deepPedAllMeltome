@@ -518,6 +518,6 @@ tbc1_qms_bp <- ggplot(tbc1_qms_df, aes(eps8l2_thermal_stability_group, value)) +
                           test = t.test) +
     labs(x = "EPS8L2_2 thermal stability", 
          y = bquote('TBC1D10C log'[2]*'fold change to mean')) +
-    coord_cartesian(ylim = c(-2, 3.5)) +
+    #coord_cartesian(ylim = c(-2, 3.5)) +
     theme_paper +
     theme(legend.position = "none")
