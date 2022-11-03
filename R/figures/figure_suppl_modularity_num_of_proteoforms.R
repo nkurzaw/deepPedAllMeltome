@@ -52,10 +52,10 @@ proteoform_df <- biobroom::tidy.ExpressionSet(
     ungroup
 
 number_of_proteoforms_df <- proteoform_df %>% 
-    summarize(proteoform = unique(gene)) %>% 
+    dplyr::summarize(proteoform = unique(gene)) %>% 
     mutate(gene = sub("_.+", "", proteoform)) %>% 
     group_by(gene) %>% 
-    summarize(n = n()) %>% 
+    dplyr::summarize(n = n()) %>% 
     ungroup 
 
 num_of_proteoforms_df <- read_csv(
@@ -75,7 +75,7 @@ uniprot_length_df <- read_delim(
     mutate(gene = sub(" .+", "", `Gene names`)) %>% 
     dplyr::select(gene, Length) %>% 
     group_by(gene) %>% 
-    summarize(max_length = max(Length)) %>% 
+    dplyr::summarize(max_length = max(Length)) %>% 
     ungroup
 
 num_prot_length_df <- left_join(number_of_proteoforms_df, uniprot_length_df, by = "gene")
