@@ -152,15 +152,29 @@ export_to_viz <- function (iois,
   #   dplyr::select(id, protein_id, peptide_aligned)
   
   # store
-  write_csv(x = nodes,
-            file = file.path(output_folder, "nodes.csv"),
-            col_names = TRUE,
-            quote_escape = FALSE)
+  # write_csv(x = nodes,
+  #           file = file.path(output_folder, "nodes.csv"),
+  #           col_names = TRUE,
+  #           escape = "none")
   
-  write_csv(x = edges,
-            file = file.path(output_folder, "edges.csv"),
-            col_names = TRUE,
-            quote_escape = FALSE)
+  write.csv(nodes, 
+            file  = file.path(output_folder, "nodes.csv"), 
+            col.names = TRUE, 
+            quote = FALSE, 
+            qmethod = "none",
+            row.names = TRUE)
+  
+  # write_csv(x = edges,
+  #           file = file.path(output_folder, "edges.csv"),
+  #           col_names = TRUE,
+  #           escape = "none")
+  
+  write.csv(edges, 
+            file  = file.path(output_folder, "edges.csv"), 
+            col.names = TRUE, 
+            quote = FALSE, 
+            qmethod = "none",
+            row.names = TRUE)
   
   # write_csv(x = alignment,
   #           path = file.path(output_folder, "alignment.csv"),
