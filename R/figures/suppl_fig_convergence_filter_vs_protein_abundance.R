@@ -98,6 +98,7 @@ ggplot(nparc_sd_df, aes(resid_sd < 0.1, rel_abundance)) +
     geom_boxplot(outlier.colour = NA, width = 0.25) +
     geom_hline(yintercept = 0, alpha = 0.5, color = "orange") +
     facet_wrap(~sample) +
+    
     theme_paper
 
 
@@ -105,7 +106,7 @@ ggplot(nparc_sd_df, aes(resid_sd < 0.1, rel_abundance)) +
 ## AATK_0
 AATK_0_df <- filter(proteoform_df, gene == "AATK_0") %>% 
     filter(!grepl("_BR2", sample_name_machine)) %>% 
-    filter(sample_name_machine %in% filter(nparc_res_hq_df, id == "AATK_0")$sample_name) %>% 
+    #filter(sample_name_machine %in% filter(nparc_res_hq_df, id == "AATK_0")$sample_name) %>% 
     na.omit()
 
 control <-  NPARC:::getParams()
@@ -152,7 +153,7 @@ AATK_0_plot_df <- AATK_0_plot_df %>%
     mutate(resid_sd_lt_01 = case_when(group %in% c("LC4_1", "RCH_ACV") ~ TRUE,
                                        TRUE ~ FALSE))
 
-ggplot(AATK_0_plot_df, 
+aatk_0_plot <- ggplot(AATK_0_plot_df, 
        aes(x, y)) +
     geom_rect(data = AATK_0_plot_df, aes(fill = resid_sd_lt_01), xmin = -Inf, xmax = Inf,
               ymin = -Inf, ymax = Inf, alpha = 0.2, show.legend = FALSE) +
@@ -176,7 +177,7 @@ ggplot(AATK_0_plot_df,
     theme_paper +
     theme(legend.position = "none")
 
-ggsave("~/Downloads/AATK_0_profile_resid_sd_filter.pdf", width = 18, height = 7.5, units = "cm")
+ggsave(aatk_0_plot, "~/Downloads/AATK_0_profile_resid_sd_filter.pdf", width = 18, height = 7.5, units = "cm")
 
 AATK_0_rss_0 <- AATK_0_null_fit_param$modelMetrics$rss
 AATK_0_rss_1 <- (AATK_0_alt_fit_param$modelMetrics %>% 
@@ -196,7 +197,7 @@ AATK_0_F_statistic <- ((AATK_0_rss_0 - AATK_0_rss_1)/AATK_0_rss_1) *
 ## CD96_2
 CD96_2_df <- filter(proteoform_df, gene == "CD96_2") %>% 
     filter(!grepl("_BR2", sample_name_machine)) %>% 
-    filter(sample_name_machine %in% filter(nparc_res_hq_df, id == "TP53_1")$sample_name) %>% 
+    #filter(sample_name_machine %in% filter(nparc_res_hq_df, id == "TP53_1")$sample_name) %>% 
     na.omit()
 
 control <-  NPARC:::getParams()
@@ -244,7 +245,7 @@ CD96_2_plot_df <- CD96_2_plot_df %>%
     mutate(resid_sd_lt_01 = case_when(group %in% c("MHH_CALL_3") ~ TRUE,
                                       TRUE ~ FALSE))
 
-ggplot(CD96_2_plot_df, 
+cd96_2_plot <- ggplot(CD96_2_plot_df, 
        aes(x, y)) +
     geom_rect(data = CD96_2_plot_df, aes(fill = resid_sd_lt_01), xmin = -Inf, xmax = Inf,
               ymin = -Inf, ymax = Inf, alpha = 0.2, show.legend = FALSE) +
@@ -268,7 +269,7 @@ ggplot(CD96_2_plot_df,
     theme_paper +
     theme(legend.position = "none")
 
-ggsave("~/Downloads/CD96_2_profile_resid_sd_filter.pdf", width = 18, height = 14, units = "cm")
+ggsave(cd96_2_plot, "~/Downloads/CD96_2_profile_resid_sd_filter.pdf", width = 18, height = 14, units = "cm")
 
 CD96_2_rss_0 <- CD96_2_null_fit_param$modelMetrics$rss
 CD96_2_rss_1 <- (CD96_2_alt_fit_param$modelMetrics %>% 
@@ -286,3 +287,8 @@ CD96_2_F_statistic <- ((CD96_2_rss_0 - CD96_2_rss_1)/CD96_2_rss_1) *
     ((CD96_2_nFittedAlternative - CD96_2_nCoeffsAlternative)/(CD96_2_nCoeffsAlternative - CD96_2_nCoeffsNull))
 
 # make combined supplementary figure
+plot_grid(aatk_0_plot, cd96_2_plot,
+          ncol = 1, labels = letters[1:2],
+          rel_heights = c(1,2))
+
+ggsave("~/Downloads/AAtK_0_CD96_2_combo_profile_resid_sd_filter.pdf", width = 18, height = 21, units = "cm")
