@@ -98,7 +98,7 @@ ggplot(nparc_sd_df, aes(resid_sd < 0.1, rel_abundance)) +
     geom_boxplot(outlier.colour = NA, width = 0.25) +
     geom_hline(yintercept = 0, alpha = 0.5, color = "orange") +
     facet_wrap(~sample) +
-    
+    ylim(-3, 3) +
     theme_paper
 
 
