@@ -105,7 +105,7 @@ ggplot(nparc_sd_df, aes(resid_sd < 0.1, rel_abundance)) +
 ## AATK_0
 AATK_0_df <- filter(proteoform_df, gene == "AATK_0") %>% 
     filter(!grepl("_BR2", sample_name_machine)) %>% 
-    #filter(sample_name_machine %in% filter(nparc_res_hq_df, id == "TP53_1")$sample_name) %>% 
+    filter(sample_name_machine %in% filter(nparc_res_hq_df, id == "AATK_0")$sample_name) %>% 
     na.omit()
 
 control <-  NPARC:::getParams()
@@ -161,6 +161,10 @@ ggplot(AATK_0_plot_df,
               data = AATK_0_alt_fit_df)+#,
     #color = "darkgray") +
     geom_point(aes(color = group, group = group)) +
+    geom_text(aes(label = as.character(round(resid_sd, 4))), 
+              data = filter(nparc_alt_result_df, id == "AATK_0") %>% 
+                  mutate(x = 55, y = 1.5, group = sample) %>% 
+                  filter(!grepl("BR", group))) +
     # geom_segment(aes(xend = x, yend = .fitted), 
     #              linetype = "dashed") +
     scale_color_manual("", values = cl_colors) +
@@ -168,156 +172,117 @@ ggplot(AATK_0_plot_df,
     labs(x = x_label,
          y = y_label) +
     facet_wrap(~ group, ncol = 11) +
-    ggtitle("AATK proteoform 1") +
+    ggtitle("AATK_0") +
     theme_paper +
     theme(legend.position = "none")
+
+ggsave("~/Downloads/AATK_0_profile_resid_sd_filter.pdf", width = 18, height = 7.5, units = "cm")
 
 AATK_0_rss_0 <- AATK_0_null_fit_param$modelMetrics$rss
 AATK_0_rss_1 <- (AATK_0_alt_fit_param$modelMetrics %>% 
                      dplyr::summarize(rss = sum(rss)))$rss
 
-## ABCF1_1
-ABCF1_1_df <- filter(proteoform_df, gene == "ABCF1_1") %>% 
+AATK_0_nCoeffsNull <- AATK_0_null_fit_param$modelMetrics$nCoeffs
+
+AATK_0_nCoeffsAlternative <- (AATK_0_alt_fit_param$modelMetrics %>% 
+                                  dplyr::summarize(nCoeffs = sum(nCoeffs)))$nCoeffs
+
+AATK_0_nFittedAlternative <- (AATK_0_alt_fit_param$modelMetrics %>% 
+                                  dplyr::summarize(nFitted = sum(nFitted)))$nFitted
+
+AATK_0_F_statistic <- ((AATK_0_rss_0 - AATK_0_rss_1)/AATK_0_rss_1) * 
+    ((AATK_0_nFittedAlternative - AATK_0_nCoeffsAlternative)/(AATK_0_nCoeffsAlternative - AATK_0_nCoeffsNull))
+
+## CD96_2
+CD96_2_df <- filter(proteoform_df, gene == "CD96_2") %>% 
     filter(!grepl("_BR2", sample_name_machine)) %>% 
-    #filter(sample_name_machine %in% filter(nparc_res_hq_df, id == "TP53_1")$sample_name) %>% 
+    filter(sample_name_machine %in% filter(nparc_res_hq_df, id == "TP53_1")$sample_name) %>% 
     na.omit()
 
 control <-  NPARC:::getParams()
-temp_range <- seq(from = 40, to = 65, by = 0.1)
 
-ABCF1_1_alt_fit_param <- NPARC:::invokeParallelFits(
-    x = ABCF1_1_df$temperature, 
-    y = ABCF1_1_df$rel_value, 
-    id = ABCF1_1_df$gene, 
-    groups = ABCF1_1_df$sample_name_machine,
+CD96_2_null_fit_param <- NPARC:::invokeParallelFits(
+    x = CD96_2_df$temperature, 
+    y = CD96_2_df$rel_value, 
+    id = CD96_2_df$gene, 
+    groups = NULL,
     BPPARAM = BiocParallel::SerialParam(progressbar = TRUE),
     maxAttempts = control$maxAttempts,
     returnModels = FALSE,
     start = control$start)
 
-ABCF1_1_alt_fit_df <- 
-    tibble(temperature = rep(temp_range, 20),
+temp_range <- seq(from = 40, to = 65, by = 0.1)
+
+CD96_2_alt_fit_param <- NPARC:::invokeParallelFits(
+    x = CD96_2_df$temperature, 
+    y = CD96_2_df$rel_value, 
+    id = CD96_2_df$gene, 
+    groups = CD96_2_df$sample_name_machine,
+    BPPARAM = BiocParallel::SerialParam(progressbar = TRUE),
+    maxAttempts = control$maxAttempts,
+    returnModels = FALSE,
+    start = control$start)
+
+CD96_2_alt_fit_df <- 
+    tibble(temperature = rep(temp_range, 14),
            group = rep(
-               unique(ABCF1_1_df$sample_name_machine),
+               unique(CD96_2_df$sample_name_machine),
                each = length(temp_range)
            )) %>% 
-    left_join(ABCF1_1_alt_fit_param$modelMetrics, 
+    left_join(CD96_2_alt_fit_param$modelMetrics, 
               by = "group") %>% 
     rowwise() %>% 
     mutate(y_hat = (1 - pl)  / (1 + exp((b - a/temperature))) + pl) %>% 
     ungroup
 
-ABCF1_1_plot_df <- ABCF1_1_alt_fit_param$modelPredictions %>% 
+CD96_2_plot_df <- CD96_2_alt_fit_param$modelPredictions %>% 
     left_join(sample_meta_raw %>% 
                   dplyr::select(group = sample_name_machine, subtype),
-              by = "group") #%>% 
-# left_join(bcell_maturation_anno %>% 
-#               dplyr::select(group = sample, Assigned_stage),
-#           by = "group") %>% 
-# mutate(simple_stage = factor(
-#     case_when(grepl("other", Assigned_stage) ~ "other",
-#               grepl("pre-pro", Assigned_stage) ~ "pre-pro-B",
-#               grepl("pro", Assigned_stage) ~ "pro-B",
-#               grepl("pre", Assigned_stage) ~ "pre-B"),
-#     levels = c("pre-pro-B", "pro-B", "pre-B", "other")))
+              by = "group") 
 
-# tp53_1_alt_fit_df <- tp53_1_alt_fit_df %>% 
-#     left_join(bcell_maturation_anno %>% 
-#                   dplyr::select(group = sample, Assigned_stage),
-#               by = "group") %>% 
-#     mutate(simple_stage = factor(
-#         case_when(grepl("other", Assigned_stage) ~ "other",
-#                   grepl("pre-pro", Assigned_stage) ~ "pre-pro-B",
-#                   grepl("pro", Assigned_stage) ~ "pro-B",
-#                   grepl("pre", Assigned_stage) ~ "pre-B"),
-#         levels = c("pre-pro-B", "pro-B", "pre-B", "other")))
+CD96_2_plot_df <- CD96_2_plot_df %>% 
+    mutate(resid_sd_lt_01 = case_when(group %in% c("MHH_CALL_3") ~ TRUE,
+                                      TRUE ~ FALSE))
 
-ggplot(ABCF1_1_plot_df, 
+ggplot(CD96_2_plot_df, 
        aes(x, y)) +
+    geom_rect(data = CD96_2_plot_df, aes(fill = resid_sd_lt_01), xmin = -Inf, xmax = Inf,
+              ymin = -Inf, ymax = Inf, alpha = 0.2, show.legend = FALSE) +
+    scale_fill_manual(values = c("white", "gray")) +
     geom_line(aes(temperature, y_hat, color = group, group = group), #, linetype = Assigned_stage), 
-              data = ABCF1_1_alt_fit_df)+#,
+              data = CD96_2_alt_fit_df)+#,
     #color = "darkgray") +
     geom_point(aes(color = group, group = group)) +
     # geom_segment(aes(xend = x, yend = .fitted), 
     #              linetype = "dashed") +
+    geom_text(aes(label = as.character(round(resid_sd, 4))), 
+              data = filter(nparc_alt_result_df, id == "CD96_2") %>% 
+                  mutate(x = 55, y = 0.1, group = sample) %>% 
+                  filter(!grepl("BR", group))) +
     scale_color_manual("", values = cl_colors) +
-    #scale_x_continuous(breaks = c(40, 55)) +
+    scale_y_continuous(limits = c(0, 1.3)) +
     labs(x = x_label,
          y = y_label) +
-    facet_wrap(~ group, ncol = 11) +
-    ggtitle("ABCF1 proteoform 1") +
-    theme_paper 
+    facet_wrap(~ group, ncol = 7) +
+    ggtitle("CD96_2") +
+    theme_paper +
+    theme(legend.position = "none")
 
-## TP53_1
-tp53_1_df <- filter(proteoform_df, gene == "TP53_1") %>% 
-    filter(!grepl("_BR2", sample_name_machine)) %>% 
-    #filter(sample_name_machine %in% filter(nparc_res_hq_df, id == "TP53_1")$sample_name) %>% 
-    na.omit()
+ggsave("~/Downloads/CD96_2_profile_resid_sd_filter.pdf", width = 18, height = 14, units = "cm")
 
-control <-  NPARC:::getParams()
-temp_range <- seq(from = 40, to = 65, by = 0.1)
+CD96_2_rss_0 <- CD96_2_null_fit_param$modelMetrics$rss
+CD96_2_rss_1 <- (CD96_2_alt_fit_param$modelMetrics %>% 
+                     dplyr::summarize(rss = sum(rss)))$rss
 
-tp53_1_alt_fit_param <- NPARC:::invokeParallelFits(
-    x = tp53_1_df$temperature, 
-    y = tp53_1_df$rel_value, 
-    id = tp53_1_df$gene, 
-    groups = tp53_1_df$sample_name_machine,
-    BPPARAM = BiocParallel::SerialParam(progressbar = TRUE),
-    maxAttempts = control$maxAttempts,
-    returnModels = FALSE,
-    start = control$start)
+CD96_2_nCoeffsNull <- CD96_2_null_fit_param$modelMetrics$nCoeffs
 
-tp53_1_alt_fit_df <- 
-    tibble(temperature = rep(temp_range, 16),
-           group = rep(
-               unique(tp53_1_df$sample_name_machine),
-               each = length(temp_range)
-           )) %>% 
-    left_join(tp53_1_alt_fit_param$modelMetrics, 
-              by = "group") %>% 
-    rowwise() %>% 
-    mutate(y_hat = (1 - pl)  / (1 + exp((b - a/temperature))) + pl) %>% 
-    ungroup
+CD96_2_nCoeffsAlternative <- (CD96_2_alt_fit_param$modelMetrics %>% 
+                                  dplyr::summarize(nCoeffs = sum(nCoeffs)))$nCoeffs
 
-tp53_1_plot_df <- tp53_1_alt_fit_param$modelPredictions %>% 
-    left_join(sample_meta_raw %>% 
-                  dplyr::select(group = sample_name_machine, subtype),
-              by = "group") #%>% 
-    # left_join(bcell_maturation_anno %>% 
-    #               dplyr::select(group = sample, Assigned_stage),
-    #           by = "group") %>% 
-    # mutate(simple_stage = factor(
-    #     case_when(grepl("other", Assigned_stage) ~ "other",
-    #               grepl("pre-pro", Assigned_stage) ~ "pre-pro-B",
-    #               grepl("pro", Assigned_stage) ~ "pro-B",
-    #               grepl("pre", Assigned_stage) ~ "pre-B"),
-    #     levels = c("pre-pro-B", "pro-B", "pre-B", "other")))
+CD96_2_nFittedAlternative <- (CD96_2_alt_fit_param$modelMetrics %>% 
+                                  dplyr::summarize(nFitted = sum(nFitted)))$nFitted
 
-# tp53_1_alt_fit_df <- tp53_1_alt_fit_df %>% 
-#     left_join(bcell_maturation_anno %>% 
-#                   dplyr::select(group = sample, Assigned_stage),
-#               by = "group") %>% 
-#     mutate(simple_stage = factor(
-#         case_when(grepl("other", Assigned_stage) ~ "other",
-#                   grepl("pre-pro", Assigned_stage) ~ "pre-pro-B",
-#                   grepl("pro", Assigned_stage) ~ "pro-B",
-#                   grepl("pre", Assigned_stage) ~ "pre-B"),
-#         levels = c("pre-pro-B", "pro-B", "pre-B", "other")))
+CD96_2_F_statistic <- ((CD96_2_rss_0 - CD96_2_rss_1)/CD96_2_rss_1) * 
+    ((CD96_2_nFittedAlternative - CD96_2_nCoeffsAlternative)/(CD96_2_nCoeffsAlternative - CD96_2_nCoeffsNull))
 
-ggplot(tp53_1_plot_df, 
-                  aes(x, y)) +
-    geom_line(aes(temperature, y_hat, color = group, group = group), #, linetype = Assigned_stage), 
-              data = tp53_1_alt_fit_df)+#,
-    #color = "darkgray") +
-    geom_point(aes(color = group, group = group)) +
-    # geom_segment(aes(xend = x, yend = .fitted), 
-    #              linetype = "dashed") +
-    scale_color_manual("", values = cl_colors) +
-    #scale_x_continuous(breaks = c(40, 55)) +
-    labs(x = x_label,
-         y = y_label) +
-    facet_wrap(~ group, ncol = 11) +
-    ggtitle("TP53 proteoform 1") +
-    theme_paper 
-
-## ZSWIM7_0
+# make combined supplementary figure
