@@ -311,3 +311,64 @@ plot_grid(elac2_phosphoTPP_fit + theme(legend.position = "none"),
 
 ggsave(filename = "R/figures/elac2_phosphoTPP.pdf", 
        width = 6.5, height = 6, units = "cm")
+
+# Source data
+source_data_fig2c_1 <- tmpo_peptides_df %>% 
+    filter(sample_name_machine == "COG_355") %>% 
+    mutate(gene_name = "TMPO") %>% 
+    dplyr::select(gene_name, peptide = gene, channel, temperature, sample_name, rel_value)
+
+write_csv(source_data_fig2c_1,
+          file = here("R/tables/source_data_figure2c_1.csv"))
+
+source_data_fig2c_2 <- tmpo_proteoform_df %>% 
+    filter(sample_name_machine == "COG_355") %>% 
+    mutate(gene_name = "TMPO") %>% 
+    dplyr::select(gene_name, proteoform_group = gene, channel, temperature, 
+                  sample_name = sample_name_machine, rel_value = value)
+
+write_csv(source_data_fig2c_2,
+          file = here("R/tables/source_data_figure2c_2.csv"))
+
+suppl_table2 <- read_delim(here("R/tables/suppl_table_2_proteoform_detection.txt"), delim = "\t")
+
+source_data_fig2d <- suppl_table2 %>% 
+    filter(gene == "TMPO")
+
+write_csv(source_data_fig2d,
+          file = here("R/tables/source_data_figure2d.csv"))
+
+source_data_fig2g_1 <- elac2_peptides_df %>% 
+    filter(sample_name_machine == "NALL_1") %>% 
+    mutate(gene_name = "ELAC2") %>% 
+    dplyr::select(gene_name, peptide = gene, channel, temperature, sample_name, rel_value)
+
+write_csv(source_data_fig2g_1,
+          file = here("R/tables/source_data_figure2g_1.csv"))
+
+source_data_fig2g_2 <- elac2_proteoform_df %>% 
+    filter(sample_name_machine == "NALL_1") %>% 
+    mutate(gene_name = "ELAC2") %>% 
+    dplyr::select(gene_name, proteoform_group = gene, channel, temperature, 
+                  sample_name = sample_name_machine, rel_value = value)
+
+write_csv(source_data_fig2g_2,
+          file = here("R/tables/source_data_figure2g_2.csv"))
+
+source_data_fig2h <- suppl_table2 %>% 
+    filter(gene == "ELAC2")
+
+write_csv(source_data_fig2h,
+          file = here("R/tables/source_data_figure2h.csv"))
+
+source_data_fig2i <- bind_rows(
+    elac2_phospho_peptide_tab_filtered %>% 
+        filter(mod_sequence == "_HQPWQpSPERPLSR_") %>% 
+        dplyr::select(gene_name, sequence, mod_sequence, replicate, temperature, rel_value),
+    elac2_nbf_peptide_tab_filtered %>% 
+        mutate(mod_sequence = "unmodified")  %>% 
+        dplyr::select(gene_name, sequence, mod_sequence, replicate, temperature, rel_value)
+)
+
+write_csv(source_data_fig2i,
+          file = here("R/tables/source_data_figure2i.csv"))
