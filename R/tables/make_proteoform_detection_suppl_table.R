@@ -56,11 +56,11 @@ graph_gt0_df <- bind_rows(lapply(names(graphs_gt0), function(gr_nm){
            proteoform_id = paste(gr_nm, membership_vec, sep = "_")) %>% 
         arrange(proteoform) %>% 
         group_by(gene, proteoform, proteoform_id) %>% 
-        summarize(psms = toString(psms), .groups = "keep") %>% 
+        summarize(peptides = toString(psms), .groups = "keep") %>% 
         ungroup()
 })) %>% 
     filter(proteoform_id %in% proteoform_df$gene) %>% 
-    mutate(group = "modularity > 0")
+    mutate(group = "modularity > 1e-13")
 
 # convert graphs_lte0 to data frame
 graph_lte0_df <- bind_rows(lapply(names(graphs_lte0), function(gr_nm){
@@ -70,14 +70,14 @@ graph_lte0_df <- bind_rows(lapply(names(graphs_lte0), function(gr_nm){
            proteoform = 0,
            proteoform_id = paste(gr_nm, 0, sep = "_")) %>% 
         group_by(gene, proteoform, proteoform_id) %>% 
-        summarize(psms = toString(psms), .groups = "keep") %>% 
+        summarize(peptides = toString(psms), .groups = "keep") %>% 
         ungroup()
 })) %>% 
     filter(proteoform_id %in% proteoform_df$gene) %>% 
-    mutate(group = "modularity <= 0")
+    mutate(group = "modularity <= 1e-13")
 
-# get psms of proteoforms with too few psms for proteoform detection
-not_yet_covered_psms <- unique(
+# get peptides of proteoforms with too few peptides for proteoform detection
+not_yet_covered_peptides <- unique(
     proteoform_df %>% 
         filter(!gene %in% c(graph_gt0_df$proteoform_id, graph_lte0_df$proteoform_id)) %>% 
         pull(gene))
@@ -85,10 +85,10 @@ not_yet_covered_psms <- unique(
 # make data frame with remaining psm assignments
 non_graph_df <- peptides_df %>% 
     dplyr::select(gene = id, psms = gene) %>% 
-    filter(gene %in% sub("_.+", "", not_yet_covered_psms)) %>% 
+    filter(gene %in% sub("_.+", "", not_yet_covered_peptides)) %>% 
     mutate(proteoform = 0, proteoform_id = paste(gene, "0", sep = "_")) %>% 
     group_by(gene, proteoform, proteoform_id) %>% 
-    summarize(psms = toString(psms), .groups = "keep") %>% 
+    summarize(peptides = toString(psms), .groups = "keep") %>% 
     ungroup() %>% 
     mutate(group = "proteoform detection criteria not met")
 
@@ -113,4 +113,5 @@ full_suppl_fc_df <- left_join(
     full_suppl_df, proteofrom_spread_df,
     by = "proteoform_id")
 
-write_tsv(full_suppl_fc_df, path = here("R/tables/suppl_table_proteoform_detection.txt"))
+write_delim(full_suppl_fc_df, file = here("R/tables/suppl_table_2_proteoform_detection.txt"),
+            delim = "\t")
