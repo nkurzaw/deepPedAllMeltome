@@ -298,3 +298,12 @@ ggplot(all_reh_median_df,
     labs(x = x_label, y = y_label) 
 
 ggsave(filename = "R/figures/meltome_overview_reh.pdf", width = 7, height = 4, units = "cm")
+
+source_data_fig1b <- bind_rows(
+    all_697_median_df %>% mutate(sample = "697"),
+    all_kans9_median_df %>% mutate(sample = "KASUMI-9"),
+    all_reh_median_df %>%  mutate(sample = "REH")
+)
+
+write_csv(source_data_fig1b,
+          file = here("R/tables/source_data_figure1b.csv"))
