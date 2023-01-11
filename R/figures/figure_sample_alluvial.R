@@ -86,3 +86,6 @@ ggplot(sample_meta_df, aes(y = 1, axis1 = subtype,
 
 ggsave(filename = here("R/figures/figure_sample_overview.pdf"), 
        width = 18, height = 9, units = "cm")
+
+write_csv(sample_meta_df, 
+          file = here("R/tables/source_data_figure1a.csv"))
