@@ -332,11 +332,11 @@ write_csv(source_data_fig2c_2,
 
 suppl_table2 <- read_delim(here("R/tables/suppl_table_2_proteoform_detection.txt"), delim = "\t")
 
-source_data_fig2d <- suppl_table2 %>% 
+source_data_fig2e <- suppl_table2 %>% 
     filter(gene == "TMPO")
 
-write_csv(source_data_fig2d,
-          file = here("R/tables/source_data_figure2d.csv"))
+write_csv(source_data_fig2e,
+          file = here("R/tables/source_data_figure2e.csv"))
 
 source_data_fig2g_1 <- elac2_peptides_df %>% 
     filter(sample_name_machine == "NALL_1") %>% 
