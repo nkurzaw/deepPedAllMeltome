@@ -521,3 +521,40 @@ tbc1_qms_bp <- ggplot(tbc1_qms_df, aes(eps8l2_thermal_stability_group, value)) +
     #coord_cartesian(ylim = c(-2, 3.5)) +
     theme_paper +
     theme(legend.position = "none")
+
+# Source data
+source_data_fig3a_1 <- nek2_0_df %>% 
+    dplyr::select(proteoform = gene, channel, temperature, 
+                  sample_name = sample_name_machine, rel_value)
+
+write_csv(source_data_fig3a_1, file = here("R/tables/source_data_fig3a_1.csv"))
+
+source_data_fig3a_2 <- nek2_0_null_fit_param$modelMetrics
+
+write_csv(source_data_fig3a_2, file = here("R/tables/source_data_fig3a_2.csv"))
+
+source_data_fig3a_3 <- nek2_0_df %>% 
+    dplyr::select(proteoform = gene, channel, temperature, 
+                  sample_name = sample_name_machine, rel_value)
+
+write_csv(source_data_fig3a_3, file = here("R/tables/source_data_fig3a_3.csv"))
+
+source_data_fig3a_4 <- nek2_0_alt_fit_param$modelMetrics
+
+write_csv(source_data_fig3a_4, file = here("R/tables/source_data_fig3a_4.csv"))
+
+write_csv(nparc_fstat_df, file = here("R/tables/source_data_fig3b.csv"))
+
+source_data_fig3c <- dntt1_1_df %>% 
+    dplyr::select(proteoform = gene, channel, temperature, 
+                  sample_name = sample_name_machine, rel_value,
+                  state)
+
+write_csv(source_data_fig3c, file = here("R/tables/source_data_fig3c.csv"))
+
+source_data_fig3d <- inpp4b_1_df %>% 
+    dplyr::select(proteoform = gene, channel, temperature, 
+                  sample_name = sample_name_machine, rel_value,
+                  subtype)
+
+write_csv(source_data_fig3d, file = here("R/tables/source_data_fig3d.csv"))
