@@ -237,3 +237,29 @@ ggplot(cxxc1_2_setd1a_3_dist_dss_df, aes(mean_dist < 0.1, dss)) +
 
 ggsave(file.path(figure_output_folder, "fig4_cxxc1_2_setd1a_3_drug_sens.pdf"), 
        width = 8, height = 10, units = "cm")
+
+# Source data
+
+write_csv(multi_cell_line_rtpca_df, file = here("R/tables/source_data_fig_5b.csv"))
+
+source_data_fig5c <- proteoform_df %>% 
+    filter(grepl("CXXC1_2|SETD1A_3", gene),
+           !grepl("BR2", sample_name_machine)) %>% 
+    dplyr::select(proteoform = gene, sample = sample_name_machine, channel, temperature, rel_value)
+
+write_csv(source_data_fig5c, file = here("R/tables/source_data_fig_5c.csv"))
+
+tmp <- plotEnrichment(pathways[["p53-Independent DNA Damage Response"]],
+                      -deseq_ranks) + labs(title="p53-Independent DNA Damage Response")
+
+source_data_fig5d <- tmp$data %>% 
+    dplyr::select(gene_id = x, log2_fold_change = y)
+
+write_csv(source_data_fig5d, file = here("R/tables/source_data_fig_5d.csv"))
+
+source_data_fig5e <- cxxc1_2_setd1a_3_dist_dss_df %>% 
+    dplyr::select(ppi = complex_name, mean_dist, sample, drug_name, dss)
+
+write_csv(source_data_fig5e, file = here("R/tables/source_data_fig_5e.csv"))
+
+
