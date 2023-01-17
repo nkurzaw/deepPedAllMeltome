@@ -249,11 +249,11 @@ source_data_fig5c <- proteoform_df %>%
 
 write_csv(source_data_fig5c, file = here("R/tables/source_data_fig_5c.csv"))
 
-tmp <- plotEnrichment(pathways[["p53-Independent DNA Damage Response"]],
-                      -deseq_ranks) + labs(title="p53-Independent DNA Damage Response")
-
-source_data_fig5d <- tmp$data %>% 
-    dplyr::select(gene_id = x, log2_fold_change = y)
+source_data_fig5d <- plot_df %>% 
+    filter(!is.na(ENTREZID)) %>% 
+    mutate(rank = dense_rank(log2FoldChange)) %>% 
+    filter(ENTREZID %in% pathways[["p53-Independent DNA Damage Response"]]) %>% 
+    dplyr::select(entrez_id = ENTREZID, gene_name = rowname, log2FoldChange, rank)
 
 write_csv(source_data_fig5d, file = here("R/tables/source_data_fig_5d.csv"))
 
