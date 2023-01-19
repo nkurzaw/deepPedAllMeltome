@@ -105,3 +105,12 @@ ggplot(filter(all_limma_out_df, p_adj >= 0.1),
     labs(x = bquote('log'[2]*'(fold change)'),
          y = bquote('-log'[10]*'('*italic(p)*'-value)')) +
     theme(legend.position = "none")
+
+##  Source data
+source_data_fig6b <- as_tibble(auc_mat_norm, rownames = "proteoform") %>% 
+    gather(sample_name, aumc, -proteoform) %>% 
+    na.omit() %>% 
+    left_join(as_tibble(dss_mat, rownames = "sample_name"), 
+              by = "sample_name")
+
+write_csv(source_data_fig6b, file = here("R/tables/source_data_fig_6b.csv"))
