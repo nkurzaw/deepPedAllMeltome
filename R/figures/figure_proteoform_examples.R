@@ -316,7 +316,8 @@ ggsave(filename = "R/figures/elac2_phosphoTPP.pdf",
 source_data_fig2c_1 <- tmpo_peptides_df %>% 
     filter(sample_name_machine == "COG_355") %>% 
     mutate(gene_name = "TMPO") %>% 
-    dplyr::select(gene_name, peptide = gene, channel, temperature, sample_name, rel_value)
+    dplyr::select(gene_name, peptide = gene, channel, temperature, sample_name, rel_value) %>% 
+    na.omit()
 
 write_csv(source_data_fig2c_1,
           file = here("R/tables/source_data_figure2c_1.csv"))
