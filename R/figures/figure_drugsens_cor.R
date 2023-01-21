@@ -271,3 +271,23 @@ plot_grid(
 
 ggsave(filename = here("R/figures/fig_drugsens_cor_volcano_plus_examples.pdf"), 
        width = 21, height = 7, units = "cm")
+
+# source data
+source_data_fig6b_1 <- as_tibble(auc_mat_norm, rownames = "proteoform")
+    
+write_csv(source_data_fig6b_1, file = here("R/tables/source_data_fig_6b_1.csv"))
+
+source_data_fig6b_2 <- as_tibble(dss_mat, rownames = "sample_name")
+
+write_csv(source_data_fig6b_2, file = here("R/tables/source_data_fig_6b_2.csv"))
+
+source_data_fig6c <- pList[[8]]$data %>% 
+    dplyr::select(proteofom = id, sample_name = sample, aumc, drug, sDSS=dss)
+
+write_csv(source_data_fig6c, file = here("R/tables/source_data_fig_6c.csv"))
+
+source_data_fig6d <- pList[[26]]$data %>% 
+    dplyr::select(proteofom = id, sample_name = sample, aumc, drug, sDSS=dss)
+
+write_csv(source_data_fig6d, file = here("R/tables/source_data_fig_6d.csv"))
+    
