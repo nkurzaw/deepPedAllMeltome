@@ -334,7 +334,8 @@ write_csv(source_data_fig2c_2,
 suppl_table2 <- read_delim(here("R/tables/suppl_table_2_proteoform_detection.txt"), delim = "\t")
 
 source_data_fig2e <- suppl_table2 %>% 
-    filter(gene == "TMPO")
+    filter(gene == "TMPO") %>% 
+    dplyr::select(gene, proteoform, proteoform_id, peptides, group)
 
 write_csv(source_data_fig2e,
           file = here("R/tables/source_data_figure2e.csv"))
@@ -342,7 +343,8 @@ write_csv(source_data_fig2e,
 source_data_fig2g_1 <- elac2_peptides_df %>% 
     filter(sample_name_machine == "NALL_1") %>% 
     mutate(gene_name = "ELAC2") %>% 
-    dplyr::select(gene_name, peptide = gene, channel, temperature, sample_name, rel_value)
+    dplyr::select(gene_name, peptide = gene, channel, temperature, sample_name, rel_value) %>% 
+    na.omit()
 
 write_csv(source_data_fig2g_1,
           file = here("R/tables/source_data_figure2g_1.csv"))
@@ -357,7 +359,8 @@ write_csv(source_data_fig2g_2,
           file = here("R/tables/source_data_figure2g_2.csv"))
 
 source_data_fig2h <- suppl_table2 %>% 
-    filter(gene == "ELAC2")
+    filter(gene == "ELAC2") %>% 
+    dplyr::select(gene, proteoform, proteoform_id, peptides, group)
 
 write_csv(source_data_fig2h,
           file = here("R/tables/source_data_figure2h.csv"))
