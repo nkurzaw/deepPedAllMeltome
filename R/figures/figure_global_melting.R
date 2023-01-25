@@ -181,8 +181,28 @@ all_reh_median_df <- all_reh_peptides_df %>%
 # median protein melting curve
 all_cell_line_median_df <- all_peptides_df %>% 
     group_by(sample_name_machine, id, temperature) %>% 
-    summarize(median_rel_value = median(rel_value, na.rm = TRUE)) %>% 
+    dplyr::summarize(median_rel_value = median(rel_value, na.rm = TRUE)) %>% 
     ungroup()
+
+## supplementary figure 1a
+ggplot(all_cell_line_median_df, aes(as.factor(temperature), median_rel_value)) +
+    geom_violin(color = NA, fill = "gray", alpha = 0.5) +
+    geom_smooth(method = "lm",
+                formula = y ~ splines::bs(x, df = 4)) +
+    facet_wrap(~sample_name_machine) +
+    coord_cartesian(ylim = c(0, 1.5)) +
+    theme_paper
+
+## source data supplementary figure 1a
+source_data_suppl_fig1a <- all_cell_line_median_df %>% 
+    filter(!grepl("BR", sample_name_machine),
+           !sample_name_machine %in% c("697", "KASUMI_9", "REH")) %>% 
+    dplyr::select(sample = sample_name_machine, gene = id, 
+                  temperature, rel_value = median_rel_value) %>% 
+    na.omit()
+
+write_csv(source_data_suppl_fig1a, file = here("R/tables/source_data_suppl_fig_1a.csv"))
+
 
 # median protein melting curve
 all_median_df <- all_peptides_df %>% 
