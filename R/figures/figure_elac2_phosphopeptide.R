@@ -45,7 +45,7 @@ proteoform_df <- biobroom::tidy.ExpressionSet(
     ungroup
 
 # load psms 
-psms <- import_psms_from_nf(file = "/Users/kurzawa/Downloads/all_elac2_ptm_psmtable.txt",
+psms <- import_psms_from_nf(file = here("data/all_elac2_ptm_psmtable.txt"),
                             id_col = "Gene Name",
                             protein_id_col = "Protein",
                             peptide_col = "Peptide",
@@ -137,3 +137,17 @@ proteoform_plot <- proteoform_df %>%
 plot_grid(phospho_peptide_plot, proteoform_plot, ncol = 2)
 ggsave(here("R/figures/figure_elac2_phospho_peptide_suppl.pdf"), 
             width = 12.5, height = 6, unit = "cm")
+
+# source data
+write_csv(psms_anno_df %>% 
+              mutate(group = case_when(gene == "ELAC2_HQPWQSPERPLSR_Phospho:S6" ~ "ELAC2_pS199_peptide",
+                                       TRUE ~ "all other ELAC2 phospho peptides")),
+          here("R/tables/source_data_suppl_fig_6a.csv"))
+
+write_csv(proteoform_df %>% 
+              filter(grepl("^ELAC2_", gene)) %>% 
+              dplyr::select(proteoform = gene, sample = sample_name_machine, 
+                            temperature, rel_value),
+          here("R/tables/source_data_suppl_fig_6b.csv"))
+
+
